@@ -159,6 +159,13 @@ class TimesheetPage extends FanniePage {
 		}
 		}
 		}
+		function switchType(type,n){
+		  if(type=='33'){
+		    $('.other'+n).slideDown("slow");
+		  } else {
+		    $('.other'+n).hide("slow");
+		  }
+		};
 		<?php
 		return ob_get_clean();
 	}
@@ -199,10 +206,8 @@ class TimesheetPage extends FanniePage {
 			echo '<td><p>Name: <select name="emp_no">
 				<option value="error">Select staff member</option>' . "\n";
 		
-			$query = $ts_db->prepare_statement("SELECT FirstName, 
-				CASE WHEN LastName='' OR LastName IS NULL THEN ''
-				ELSE ".$ts_db->concat('LEFT(LastName,1)',"'.'")." END,
-				emp_no FROM ".$FANNIE_OP_DB.".employees where EmpActive=1 ORDER BY FirstName ASC");
+			$query = $ts_db->prepare_statement("SELECT FirstName, LastName, emp_no 
+				FROM ".$FANNIE_OP_DB.".employees where EmpActive=1 ORDER BY FirstName ASC");
 			$result = $ts_db->exec_statement($query);
 			while ($row = $ts_db->fetch_array($result)) {
 				echo "<option value=\"$row[2]\">$row[0] $row[1]</option>\n";
@@ -211,22 +216,23 @@ class TimesheetPage extends FanniePage {
 		} else {
 			echo "<td><p>Employee Number*: <input type='text' name='emp_no' value='".$_COOKIE['timesheet']."' size=4 autocomplete='off' /></p></td>";
 		}
-		echo '<td><p>Date*: <input type="text" name="date" value="'. date('Y-m-d') .'" size=10 class="datepicker" alt="Tip: try cmd + arrow keys" />
-			<!--<font size=1>Tip: try cmd + arrow keys</font>--></p></td></tr>';
+		echo '<td><p>Date*: <input type="text" name="date" value="'. date('Y-m-d') .'" size=10 onclick="showCalendarControl(this);" />
+			</td></tr>';
 		echo "<tr><td><br /></td></tr>";
 		echo "<tr><td align='right'><b>Total Hours</b></td><td align='center'><strong>Labor Category</strong></td>";
 		$queryP = $ts_db->prepare_statement("SELECT IF(NiceName='', ShiftName, NiceName), ShiftID 
 			FROM " . $FANNIE_PLUGIN_SETTINGS['TimesheetDatabase'] . ".shifts 
 			WHERE visible=true ORDER BY ShiftOrder ASC");
-		for ($i = 1; $i <= $max; $i++) {
+		for ($i = 1; $i <= 10; $i++) {
 			echo "<tr><td align='right'><input type='text' name='hours" . $i . "' size=6></input></td>";
 
 			$result = $ts_db->exec_statement($queryP);
-			echo '<td><select name="area' . $i . '" id="area' . $i . '"><option>Please select an area of work.</option>';
+			echo '<td><select name="area' . $i . '" id="area' . $i . '" onchange="switchType(this.value,'.$i.')"><option>Please select an area of work.</option>';
 			while ($row = $ts_db->fetch_row($result)) {
 				echo "<option id =\"$i$row[1]\" value=\"$row[1]\">$row[0]</option>";
 			}
 			echo '</select></td></tr>' . "\n";
+			echo "<tr class='other".$i."' style='display:none'><td colspan=2 align='right' valign='top'>Explain*:<textarea name='comment".$i."' cols=38 rows=2></textarea></td></tr>";			
 		}
 		echo '<tr><td><br /></td></tr>
 			<tr><td colspan=2 align="center">
