@@ -91,7 +91,7 @@ class TimesheetPage extends FanniePage {
 					} 
 				}
 			}
-
+			
 			if (empty($this->errors)) { // All good.
 		
 				setcookie("timesheet", $emp_no, time()+60*3);
@@ -113,12 +113,12 @@ class TimesheetPage extends FanniePage {
 					$wage = $ts_db->fetch_row($result);				
 					$insP = $ts_db->prepare_statement("INSERT INTO ".
 						$FANNIE_PLUGIN_SETTINGS['TimesheetDatabase'].
-						".timesheet (emp_no, hours, area, tdate, periodID, wage)
-						VALUES (?,?,?,?,?,?)");
+						".timesheet (emp_no, hours, area, tdate, periodID, wage, comment)
+						VALUES (?,?,?,?,?,?,?)");
 					for ($i = 1; $i <= $entrycount; $i++) {
 						$result = $ts_db->exec_statement($insP,array(
 							$emp_no, $_POST['hours'.$i],
-							$_POST['area'.$i],$date,$periodID,$wage[0]
+							$_POST['area'.$i],$date,$periodID,$wage[0],$_POST['comment'.$i]
 						));
 						if ($ts_db->affected_rows() == 1) {$successcount++;}
 					}
@@ -164,7 +164,7 @@ class TimesheetPage extends FanniePage {
 		}
 		}
 		function switchType(type,n){
-		  if(type=='33'){
+		  if(type=='32'){
 		    $('.other'+n).slideDown("slow");
 		  } else {
 		    $('.other'+n).hide("slow");
@@ -244,11 +244,11 @@ class TimesheetPage extends FanniePage {
 			<button name="submit" type="submit">Submit</button>
 			<input type="hidden" name="submitted" value="TRUE" /></td></tr>
 			</table></form>';	
-		if ($this->current_user){
-			echo "<div class='log_btn'><a href='" . $FANNIE_URL . "auth/ui/loginform.php?logout=1'>logout</a></div>";
-		} else {
-			echo "<div class='log_btn'><a href='" . $_SERVER["PHP_SELF"] . "?login=1'>login</a></div>";  //   class='loginbox'
-		}
+		// if ($this->current_user){
+		// 	echo "<div class='log_btn'><a href='" . $FANNIE_URL . "auth/ui/loginform.php?logout=1'>logout</a></div>";
+		// } else {
+		// 	echo "<div class='log_btn'><a href='" . $_SERVER["PHP_SELF"] . "?login=1'>login</a></div>";  //   class='loginbox'
+		// }
 	}
 }
 
