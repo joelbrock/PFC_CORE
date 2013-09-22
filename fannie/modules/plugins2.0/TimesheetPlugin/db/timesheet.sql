@@ -34,5 +34,6 @@ CREATE TABLE IF NOT EXISTS `timesheet` (
   `ID` int(6) NOT NULL auto_increment,
   `vacation` decimal(5,2) default NULL,
   `timestamp` timestamp NOT NULL default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP,
+  `comment` varchar(512),
   PRIMARY KEY  (`ID`)
 ) ENGINE=MyISAM  DEFAULT CHARSET=latin1 AUTO_INCREMENT=1783 ;

@@ -189,6 +189,7 @@ class TimesheetPage extends FanniePage {
 	function body_content(){
 		global $ts_db, $FANNIE_OP_DB, $FANNIE_URL, $FANNIE_PLUGIN_SETTINGS;
 		include ('./includes/header.html');
+		echo '<script src="../../../src/CalendarControl.js" language="javascript"></script>';
 		/**
 		  if preprocess() changed the setting for display_func 
 		  based on form input, show that content instead of
@@ -216,7 +217,7 @@ class TimesheetPage extends FanniePage {
 		} else {
 			echo "<td><p>Employee Number*: <input type='text' name='emp_no' value='".$_COOKIE['timesheet']."' size=4 autocomplete='off' /></p></td>";
 		}
-		echo '<td><p>Date*: <input type="text" name="date" value="'. date('Y-m-d') .'" size=10 onclick="showCalendarControl(this);" />
+		echo '<td><p>Date*: <input type="text" name="date" value="'. date('Y-m-d') .'" size=10 onfocus="showCalendarControl(this);" />
 			</td></tr>';
 		echo "<tr><td><br /></td></tr>";
 		echo "<tr><td align='right'><b>Total Hours</b></td><td align='center'><strong>Labor Category</strong></td>";
