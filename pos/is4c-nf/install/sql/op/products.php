@@ -90,6 +90,12 @@ using foodstamps
 
 scale indicates whether an item should be sold by weight
 
+scaleprice indicates what type of random-weight barcodes
+are used. Value zero means UPC-A where the last 4 digits
+contains price with max value $99.99. Value one means
+EAN-13 where the last 5 digits contain price with
+max value $999.99.
+
 mixmatchcode relates to pricing when pricemethod is
 greater than zero. Items with the same mixmatchcode
 are considred equivalent when determining whether the
@@ -118,6 +124,11 @@ receipt listings of quantity.
 qttyEnforced forces the cashier to enter an explicit
 quantity when ringing up the item
 
+idEnforced forces the cashier to enter the customer's
+date of birth. This flag should be set to the age
+required to purchase the product - e.g., 21 for 
+alcohol in the US.
+
 cost is the item's cost
 
 isUse indicates whether the item is currently
@@ -126,59 +137,63 @@ setting probably varies by front end implementation.
 
 local indicates whether the item is locally sourced.
 
+deposit is a PLU. The product record with this UPC will
+be added to the transaction automatically when the item
+is rung.
+
 Other columns:
-size, scaleprice, advertised, wicable, idEnforced,
-numflag, and deposit have no current meaning on the
+size, advertised, wicable, and numflag
+have no current meaning on the
 front or back end. Or no current implementation.
 The meaning of idEnforced is pretty clear, but setting
 it won't *do* anything.
 */
 
 $CREATE['op.products'] = "
-	CREATE TABLE `products` (
-		  `upc` varchar(13) default NULL,
-		  `description` varchar(30) default NULL,
-		  `normal_price` double default NULL,
-		  `pricemethod` smallint(6) default NULL,
-		  `groupprice` double default NULL,
-		  `quantity` smallint(6) default NULL,
-		  `special_price` double default NULL,
-		  `specialpricemethod` smallint(6) default NULL,
-		  `specialgroupprice` double default NULL,
-		  `specialquantity` smallint(6) default NULL,
-		  `start_date` datetime default NULL,
-		  `end_date` datetime default NULL,
-		  `department` smallint(6) default NULL,
-		  `size` varchar(9) default NULL,
-		  `tax` smallint(6) default NULL,
-		  `foodstamp` tinyint(4) default NULL,
-		  `scale` tinyint(4) default NULL,
-		  `scaleprice` tinyint(4) default 0 NULL,
-		  `mixmatchcode` varchar(13) default NULL,
-		  `modified` datetime default NULL,
-		  `advertised` tinyint(4) default NULL,
-		  `tareweight` double default NULL,
-		  `discount` smallint(6) default NULL,
-		  `discounttype` tinyint(4) default NULL,
-		  `unitofmeasure` varchar(15) default NULL,
-		  `wicable` smallint(6) default NULL,
-		  `qttyEnforced` tinyint(4) default NULL,
-		  `idEnforced` tinyint(4) default NULL,
-		  `cost` double default 0 NULL,
-		  `inUse` tinyint(4) default NULL,
-		  `numflag` int(11) default '0',
-		  `subdept` smallint(4) default NULL,
-		  `deposit` double default NULL,
-		  `local` int(11) default '0',
-		  `store_id` smallint default '0',
-		  `id` int(11) NOT NULL auto_increment,
-		  PRIMARY KEY  (`id`),
-		  KEY `upc` (`upc`),
-		  KEY `description` (`description`),
-		  KEY `normal_price` (`normal_price`),
-		  KEY `subdept` (`subdept`),
-		  KEY `department` (`department`),
-		  KEY `store_id` (`store_id`)
+	CREATE TABLE products (
+		  upc varchar(13) default NULL,
+		  description varchar(30) default NULL,
+		  normal_price double default NULL,
+		  pricemethod smallint(6) default NULL,
+		  groupprice double default NULL,
+		  quantity smallint(6) default NULL,
+		  special_price double default NULL,
+		  specialpricemethod smallint(6) default NULL,
+		  specialgroupprice double default NULL,
+		  specialquantity smallint(6) default NULL,
+		  start_date datetime default NULL,
+		  end_date datetime default NULL,
+		  department smallint(6) default NULL,
+		  size varchar(9) default NULL,
+		  tax smallint(6) default NULL,
+		  foodstamp tinyint(4) default NULL,
+		  scale tinyint(4) default NULL,
+		  scaleprice tinyint(4) default 0 NULL,
+		  mixmatchcode varchar(13) default NULL,
+		  modified datetime default NULL,
+		  advertised tinyint(4) default NULL,
+		  tareweight double default NULL,
+		  discount smallint(6) default NULL,
+		  discounttype tinyint(4) default NULL,
+		  unitofmeasure varchar(15) default NULL,
+		  wicable smallint(6) default NULL,
+		  qttyEnforced tinyint(4) default NULL,
+		  idEnforced tinyint(4) default NULL,
+		  cost double default 0 NULL,
+		  inUse tinyint(4) default NULL,
+		  numflag int(11) default '0',
+		  subdept smallint(4) default NULL,
+		  deposit double default NULL,
+		  local int(11) default '0',
+		  store_id smallint default '0',
+		  id INTEGER NOT NULL auto_increment,
+		  PRIMARY KEY (id),
+		  INDEX (upc),
+		  INDEX (description),
+		  INDEX (normal_price),
+		  INDEX (subdept),
+		  INDEX (department),
+		  INDEX (store_id)
 	)
 ";
 if ($dbms == "MSSQL"){
@@ -223,5 +238,14 @@ if ($dbms == "MSSQL"){
 			PRIMARY KEY ([id]) )
 	";
 }
-
+else if ($dbms == "PDOLITE"){
+	$CREATE['op.products'] = str_replace('INDEX (upc),','',$CREATE['op.products']);
+	$CREATE['op.products'] = str_replace('INDEX (description),','',$CREATE['op.products']);
+	$CREATE['op.products'] = str_replace('INDEX (normal_price),','',$CREATE['op.products']);
+	$CREATE['op.products'] = str_replace('INDEX (subdept),','',$CREATE['op.products']);
+	$CREATE['op.products'] = str_replace('INDEX (department),','',$CREATE['op.products']);
+	$CREATE['op.products'] = str_replace('INDEX (store_id)','',$CREATE['op.products']);
+	$CREATE['op.products'] = str_replace('PRIMARY KEY (id),','',$CREATE['op.products']);
+	$CREATE['op.products'] = str_replace('NOT NULL auto_increment,','PRIMARY KEY autoincrement',$CREATE['op.products']);
+}
 ?>
