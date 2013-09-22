@@ -16,7 +16,8 @@ class TimesheetPage extends FanniePage {
 	  It handles form input.
 	*/
 	public function preprocess(){
-		global $ts_db;
+		global $ts_db, $FANNIE_OP_DB, $FANNIE_URL, $FANNIE_PLUGIN_SETTINGS;
+		
 		$this->header = 'Timeclock - Entry';
 		$this->title = 'Fannie - Administration Module';
 		$this->display_func = '';
@@ -51,7 +52,7 @@ class TimesheetPage extends FanniePage {
 			$result = $ts_db->exec_statement($query,array($periodID));
 			list($datediff) = $ts_db->fetch_row($result);
 		
-			$empnoChkQ = $ts_db->prepare_statement("SELECT * FROM employees WHERE emp_no = ?");
+			$empnoChkQ = $ts_db->prepare_statement("SELECT * FROM ".$FANNIE_OP_DB.".employees WHERE emp_no = ?");
 			$empnoChkR = $ts_db->exec_statement($empnoChkQ,array($_POST['emp_no']));
 	
 			if ($_POST['emp_no'] && ($_POST['emp_no'] != '')) {
@@ -107,14 +108,17 @@ class TimesheetPage extends FanniePage {
 					// 	exit;
 					// }	
 					$successcount = 0;
+					$query = $ts_db->prepare_statement("SELECT pay_rate FROM ".$FANNIE_OP_DB.".employees where emp_no=?");
+					$result = $ts_db->exec_statement($query,$emp_no);
+					$wage = $ts_db->fetch_row($result);				
 					$insP = $ts_db->prepare_statement("INSERT INTO ".
 						$FANNIE_PLUGIN_SETTINGS['TimesheetDatabase'].
-						".timesheet (emp_no, hours, area, tdate, periodID)
-						VALUES (?,?,?,?,?)");
+						".timesheet (emp_no, hours, area, tdate, periodID, wage)
+						VALUES (?,?,?,?,?,?)");
 					for ($i = 1; $i <= $entrycount; $i++) {
 						$result = $ts_db->exec_statement($insP,array(
 							$emp_no, $_POST['hours'.$i],
-							$_POST['area'.$i],$date,$periodID
+							$_POST['area'.$i],$date,$periodID,$wage[0]
 						));
 						if ($ts_db->affected_rows() == 1) {$successcount++;}
 					}
@@ -171,14 +175,14 @@ class TimesheetPage extends FanniePage {
 	}
 
 	function success_content(){
-		include ('./includes/header.html');
+		// include ('./includes/header.html');
 		echo "<div id='alert'><h1>Success!</h1>";
 		echo '<p>If you like, you may <a href="'.$_SERVER['PHP_SELF'].'">add more hours</a> 
 			or you can <a href="./ViewsheetPage.php">edit hours</a>.</p></div>';
 	}
 
 	function error_content(){
-		include ('./includes/header.html');
+		// include ('./includes/header.html');
 		echo '<div id="alert"><p><font color="red">The following error(s) occurred:</font></p>';
 		foreach ($this->errors AS $message) {
 			echo "<p> - $message</p>";
