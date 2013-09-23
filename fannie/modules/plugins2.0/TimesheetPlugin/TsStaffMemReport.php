@@ -30,6 +30,9 @@ class TsStaffMemReport extends FanniePage {
 			});
 			$(".stripeme tr:even").addClass("alt");
 		});
+		$(document).ready(function(){
+		    $('a[title]').qtip();
+		});
 		<?php
 		return ob_get_clean();
 	}
@@ -55,6 +58,8 @@ class TsStaffMemReport extends FanniePage {
 	function body_content(){
 		global $ts_db, $FANNIE_OP_DB, $FANNIE_PLUGIN_SETTINGS, $FANNIE_URL;
 		include ('./includes/header.html');
+		echo '<script type="text/javascript" language="Javascript" src="includes/jquery.qtip.min.js"></script>
+			<link type="text/css" rel="stylesheet" href="includes/jquery.qtip.min.css" />';
 		//	FULL TIME: Number of hours per week
 		$ft = 40;
 		echo '<form action="'.$_SERVER['PHP_SELF'].'" method=GET>';
@@ -268,7 +273,22 @@ class TsStaffMemReport extends FanniePage {
 						$depttotr = $ts_db->exec_statement($depttotP,array($tdate,$emp_no,$area));
 						$depttot = $ts_db->fetch_row($depttotr);
 						$depttotal = (!$depttot[0]) ? 0 : number_format($depttot[0],2);
-						echo "<td align='right'>" . $depttotal . "</td>";
+						// echo "<td align='right'>" . $depttotal . "</td>";
+				
+						if ($area == 32) {
+							$commQ = $ts_db->prepare_statement("SELECT comment FROM {$FANNIE_PLUGIN_SETTINGS['TimesheetDatabase']}.timesheet 
+								WHERE tdate = ? AND emp_no = ? AND area = 32 AND comment <> ''");
+							$commR = $ts_db->exec_statement($commQ, array(
+								$tdate, $emp_no
+							));
+							$comment = $ts_db->fetch_row($commR);
+							$otag = ($comment[0]!="")? "<a title='".$comment[0]."'>" : "";
+							$ctag = "</a>";
+						}
+						echo "<td align='right'>".$otag.$depttotal.$ctag."</td>";
+
+						$otag = "";
+						$ctag = "";
 					}
 					//	END LABOR DEPT. TOTALS
 
@@ -283,38 +303,10 @@ class TsStaffMemReport extends FanniePage {
 					$ptoAcc = ($name['JobTitle'] == 'STAFF') ? $total[0] * 0.075 : 0;
 					echo "<td align='right'>" . number_format($ptoAcc,2) . "</td>";
 
-
 					echo "<td align='right'><font style='color: $color; font-weight:bold;'>" . $total0 . "</font></td>";
 
 					// 
 					//	OVERTIME
-					// 
-					// $otime1 = array();
-					// $otime2 = array();
-					// foreach ($p as $v) {
-					// 
-					// 	$weekoneR = $ts_db->exec_statement($weekoneP,array($emp_no,$v));
-					// 	$weektwoR = $ts_db->exec_statement($weektwoP,array($emp_no,$v));
-					// 
-					// 	list($weekone) = $ts_db->fetch_row($weekoneR);
-					// 	if (is_null($weekone)) $weekone = 0;
-					// 	list($weektwo) = $ts_db->fetch_row($weektwoR);
-					// 	if (is_null($weektwo)) $weektwo = 0;
-					// 
-					// 	if ($weekone > $ft) $otime1[] = $weekone - $ft;
-					// 	if ($weektwo > $ft) $otime2[] = $weektwo - $ft;
-					// 	// $otime = $otime + $otime1 + $otime2;
-					// 
-					// }
-					// $ot1 = array_sum($otime1);
-					// $ot2 = array_sum($otime2);
-					// $otime = $ot1 + $ot2;
-					// // print_r($p);
-					// echo "<td align='right'>" . $otime . "</td>";
-					// $otime = 0;
-					// $otime1 = array();
-					// $otime2 = array();
-					// OT col
 					$otQ = $ts_db->prepare_statement("SELECT ROUND(SUM(hours), 2) 
 						FROM {$FANNIE_PLUGIN_SETTINGS['TimesheetDatabase']}.timesheet AS t
 				        INNER JOIN {$FANNIE_PLUGIN_SETTINGS['TimesheetDatabase']}.payperiods AS p 
@@ -327,16 +319,11 @@ class TsStaffMemReport extends FanniePage {
 
 					list($ot_day) = $ts_db->fetch_row($otR);
 					if (is_null($ot_day)) $ot_day = 0;
-
-					// $otime = ((($ot_day - $ft) > 0) ? $ot_day - $ft - (($OT) ? array_sum($OT) : 0) : 0);
-
 					$otime = (($ot_day - $ft) > 0) ? $ot_day - $ft - $ot_yest : 0;
-					// $otime = ($ot_yest <> 0) ? $preotime - $ot_day : $preotime;
 
 					echo "<td align='right'>" . $otime . "</td>";
 
 					$ot_yest = $otime; 
-
 					$OT[] = $otime;
 					// 	END OVERTIME
 					echo "</tr>";
