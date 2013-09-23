@@ -11,7 +11,44 @@ class TsEmployeesReport extends FanniePage {
 		$this->title = "Timeclock - Employees Report";
 		return True;
 	}
-
+	
+	function javascript_content(){
+		ob_start();
+		?>
+		$(document).ready(function() {
+			$(".stripeme tr").mouseover(function() {
+				$(this).addClass("over");
+			});
+			$(".stripeme tr").mouseout(function() {
+				$(this).removeClass("over");
+			});
+			$(".stripeme tr:even").addClass("alt");
+		});
+		$(document).ready(function(){
+		    $('a[title]').qtip();
+		});
+		<?php
+		return ob_get_clean();
+	}
+	
+	function css_content(){
+		ob_start();
+		?>
+		tr.alt td { background:whiteSmoke; }
+		tr.over td { background:#CCCCFF; }
+		.split { color:white; font-weight:bold; background:#999999; height:10px; }
+		table th, table th a {
+			font-size: 8px;
+			text-transform: uppercase;
+		}
+		table th {
+			font-size: 8px;
+			text-transform: uppercase;
+		}
+		<?php
+		return ob_get_clean();
+	}
+	
 	function body_content(){
 		global $ts_db, $FANNIE_OP_DB, $FANNIE_PLUGIN_SETTINGS;
 		include('./includes/header.html');
@@ -57,12 +94,13 @@ class TsEmployeesReport extends FanniePage {
 			if ($end == 0) $end = $periodID;
 	
 			$namesq = $ts_db->prepare_statement("SELECT e.emp_no, e.FirstName, e.LastName, e.pay_rate, JobTitle 
-				FROM employees e WHERE e.empActive = 1 ORDER BY e.LastName");
+				FROM ".$FANNIE_OP_DB.".employees e WHERE e.empActive = 1 ORDER BY e.LastName");
 			$namesr = $ts_db->exec_statement($namesq);
 			$areasq = $ts_db->prepare_statement("SELECT ShiftName, ShiftID 
 				FROM ".$FANNIE_PLUGIN_SETTINGS['TimesheetDatabase'].".shifts 
-				WHERE visible = 1 AND ShiftID <> 31 ORDER BY ShiftOrder");
+				WHERE visible = 1 ORDER BY ShiftOrder");
 			$areasr = $ts_db->exec_statement($areasq);
+			
 			$shiftInfo = array();
 			while($row = $ts_db->fetch_row($areasr)){
 				$shiftInfo[$row['ShiftID']] = $row['ShiftName'];
@@ -97,10 +135,12 @@ class TsEmployeesReport extends FanniePage {
 			// END TITLE	
 			echo "<br />";
 	
-
-			echo "<table border='1' cellpadding='5' cellspacing=0><thead>\n<tr><th>Name</th><th>Wage</th>";
-			while ($areas = $ts_db->fetch_array($areasr)) {
-				echo "<div id='vth'><th>" . substr($areas[0],0,6) . "</th></div>";	// -- TODO vertical align th, static col width
+// print_r($areasr);
+// $ts_db->fetch_row($areasr) OR DIE ("ERROR(".mysql_errno()."): ".mysql_error());
+			echo "<table border='1' cellpadding='5' cellspacing=0 class='stripeme'><thead>\n<tr><th>Name</th><th>Wage</th>";
+			// while ($areas = $ts_db->fetch_array($areasr)) {
+			foreach($shiftInfo as $area => $shiftName){	
+				echo "<div id='vth'><th>" . substr($shiftName,0,6) . "</th></div>";	// -- TODO vertical align th, static col width
 			}
 			echo "</th><th>OT</th><th>PTO used</th><th>PTO new</th><th>Total</th></tr></thead>\n<tbody>\n";
 			$PTOnew = array();
