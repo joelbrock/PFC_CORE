@@ -224,8 +224,8 @@ class TsStaffMemReport extends FanniePage {
 					AND emp_no = ?");
 				$weekoneP = $ts_db->prepare_statement("SELECT ROUND(SUM(hours), 2) 
 					FROM {$FANNIE_PLUGIN_SETTINGS['TimesheetDatabase']}.timesheet AS t
-					INNER JOIN {$FANNIE_PLUGIN_SETTINGS['TimesheetDatabase']}.payperiods 
-					AS p ON (p.periodID = t.periodID)
+					INNER JOIN {$FANNIE_PLUGIN_SETTINGS['TimesheetDatabase']}.payperiods AS p 
+					ON (p.periodID = t.periodID)
 					WHERE t.emp_no = ?
 					AND t.periodID = ?
 					AND t.area <> 31
@@ -280,7 +280,7 @@ class TsStaffMemReport extends FanniePage {
 					//	PTO CALC
 					$nonPTOtotalr = $ts_db->exec_statement($nonPTOtotalP,array($periodID,$end,$emp_no));
 					$nonPTOtotal = $ts_db->fetch_row($nonPTOtotalr);
-					$ptoAcc = ($row['JobTitle'] == 'STAFF') ? $nonPTOtotal[0] * 0.075 : 0;
+					$ptoAcc = ($name['JobTitle'] == 'STAFF') ? $total[0] * 0.075 : 0;
 					echo "<td align='right'>" . number_format($ptoAcc,2) . "</td>";
 
 
@@ -289,36 +289,91 @@ class TsStaffMemReport extends FanniePage {
 					// 
 					//	OVERTIME
 					// 
-					$otime1 = array();
-					$otime2 = array();
-					foreach ($p as $v) {
+					// $otime1 = array();
+					// $otime2 = array();
+					// foreach ($p as $v) {
+					// 
+					// 	$weekoneR = $ts_db->exec_statement($weekoneP,array($emp_no,$v));
+					// 	$weektwoR = $ts_db->exec_statement($weektwoP,array($emp_no,$v));
+					// 
+					// 	list($weekone) = $ts_db->fetch_row($weekoneR);
+					// 	if (is_null($weekone)) $weekone = 0;
+					// 	list($weektwo) = $ts_db->fetch_row($weektwoR);
+					// 	if (is_null($weektwo)) $weektwo = 0;
+					// 
+					// 	if ($weekone > $ft) $otime1[] = $weekone - $ft;
+					// 	if ($weektwo > $ft) $otime2[] = $weektwo - $ft;
+					// 	// $otime = $otime + $otime1 + $otime2;
+					// 
+					// }
+					// $ot1 = array_sum($otime1);
+					// $ot2 = array_sum($otime2);
+					// $otime = $ot1 + $ot2;
+					// // print_r($p);
+					// echo "<td align='right'>" . $otime . "</td>";
+					// $otime = 0;
+					// $otime1 = array();
+					// $otime2 = array();
+					// OT col
+					$otQ = $ts_db->prepare_statement("SELECT ROUND(SUM(hours), 2) 
+						FROM {$FANNIE_PLUGIN_SETTINGS['TimesheetDatabase']}.timesheet AS t
+				        INNER JOIN {$FANNIE_PLUGIN_SETTINGS['TimesheetDatabase']}.payperiods AS p 
+						ON (p.periodID = t.periodID)
+				        WHERE t.emp_no = ? AND t.periodID = ? AND t.area <> 31
+						AND t.tdate BETWEEN STR_TO_DATE(CONCAT(YEAR(?),WEEK(?),' Sunday'), '%X%V %W') 
+						AND ?");
+					// echo $otQ;
+					$otR = $ts_db->exec_statement($otQ, array($emp_no,$periodID,$tdate,$tdate,$tdate));
 
+					list($ot_day) = $ts_db->fetch_row($otR);
+					if (is_null($ot_day)) $ot_day = 0;
 
-						$weekoneR = $ts_db->exec_statement($weekoneP,array($emp_no,$v));
-						$weektwoR = $ts_db->exec_statement($weektwoP,array($emp_no,$v));
+					// $otime = ((($ot_day - $ft) > 0) ? $ot_day - $ft - (($OT) ? array_sum($OT) : 0) : 0);
 
-						list($weekone) = $ts_db->fetch_row($weekoneR);
-						if (is_null($weekone)) $weekone = 0;
-						list($weektwo) = $ts_db->fetch_row($weektwoR);
-						if (is_null($weektwo)) $weektwo = 0;
+					$otime = (($ot_day - $ft) > 0) ? $ot_day - $ft - $ot_yest : 0;
+					// $otime = ($ot_yest <> 0) ? $preotime - $ot_day : $preotime;
 
-						if ($weekone > $ft) $otime1[] = $weekone - $ft;
-						if ($weektwo > $ft) $otime2[] = $weektwo - $ft;
-						// $otime = $otime + $otime1 + $otime2;
-
-					}
-					$ot1 = array_sum($otime1);
-					$ot2 = array_sum($otime2);
-					$otime = $ot1 + $ot2;
-					// print_r($p);
 					echo "<td align='right'>" . $otime . "</td>";
-					$otime = 0;
-					$otime1 = array();
-					$otime2 = array();
+
+					$ot_yest = $otime; 
+
+					$OT[] = $otime;
 					// 	END OVERTIME
 					echo "</tr>";
 
 				}
+				
+				echo "<tr><td colspan=4><b>TOTALS</b></td>";
+
+				$TOT = array();
+				$areasq = $ts_db->prepare_statement("SELECT ShiftName, ShiftID 
+					FROM ".$FANNIE_PLUGIN_SETTINGS['TimesheetDatabase'].".shifts 
+					WHERE visible = 1 ORDER BY ShiftOrder");
+				$areasr = $ts_db->exec_statement($areasq);
+				while ($areas = $ts_db->fetch_array($areasr)) {
+					$query = $ts_db->prepare_statement("SELECT ROUND(SUM(hours),2) 
+						FROM {$FANNIE_PLUGIN_SETTINGS['TimesheetDatabase']}.timesheet t 
+						WHERE emp_no = ? AND tdate BETWEEN ? AND ? AND area = ?");
+					$totsr = $ts_db->exec_statement($query, array(
+						$emp_no, $periodStart[2], $periodEnd[2], $areas[1]
+					));
+					$tots = $ts_db->fetch_row($totsr);
+					$tot = (!$tots[0] || $tots[0] == '') ? '0' : $tots[0];
+					echo "<td align='right'><b>$tot</b></td>";
+					$TOT[] = $tot;
+				}
+
+				$PTOTOT = number_format(array_sum($PTOnew),2);
+				echo "<td><b>$PTOTOT</b></td>";
+
+				$TOTAL = number_format(array_sum($TOT),2);
+				echo "<td><b>$TOTAL</b></td>";
+
+				$OTTOT = number_format(array_sum($OT),2);
+				echo "<td><b>$OTTOT</b></td>";
+
+				echo"</tr>";
+				
 				echo "</tbody></table>\n";
 			}
 	
