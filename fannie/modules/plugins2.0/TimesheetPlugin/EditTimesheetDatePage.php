@@ -45,7 +45,7 @@ class EditTimesheetDatePage extends FanniePage {
 			if ($_POST['submit'] == 'delete') {
 				$query = $ts_db->prepare_statement("DELETE 
 					FROM {$FANNIE_PLUGIN_SETTINGS['TimesheetDatabase']}.timesheet 
-					WHERE emp_no=? AND date=?");
+					WHERE emp_no=? AND tdate=?");
 				$result = $ts_db->exec_statement($query,array($emp_no,$date));
 				if ($result) {
 					$this->display_func = 'ts_delete_msg';
@@ -80,6 +80,7 @@ class EditTimesheetDatePage extends FanniePage {
 							$hours[$i] = $_POST['hours' . $i];
 							$area[$i] = $_POST['area' . $i];
 							$ID[$i] = $_POST['ID' . $i];
+							$comment[$i] = $_POST['comment' . $i];
 						}
 					}
 				}
@@ -89,15 +90,16 @@ class EditTimesheetDatePage extends FanniePage {
 					$successcount = 0;
 					$upP = $ts_db->prepare_statement("UPDATE 
 						{$FANNIE_PLUGIN_SETTINGS['TimesheetDatabase']}.timesheet 
-						SET hours=?,area=?
+						SET hours=?,area=?,comment=?
 					    WHERE emp_no=? AND tdate=? AND ID=?");
+
 					$insP = $ts_db->prepare_statement("INSERT INTO 
 						{$FANNIE_PLUGIN_SETTINGS['TimesheetDatabase']}.timesheet 
-						(emp_no, hours, area, tdate, periodID) VALUES (?,?,?,?,?)");
+						(emp_no, hours, area, tdate, periodID, wage, comment) VALUES (?,?,?,?,?,?,?)");
 					for ($i = 1; $i <= $entrycount; $i++) {
 						if (is_numeric($ID[$i])) {
 							$result = $ts_db->exec_statement($upP,array(
-								$hours[$i],$area[$i],
+								$hours[$i],$area[$i],$comment[$i],
 								$emp_no, $date, $ID[$i]
 							));
 							if ($result) {$successcount++;} 
@@ -107,10 +109,14 @@ class EditTimesheetDatePage extends FanniePage {
 							}
 						} 
 						elseif ($ID[$i] == 'insert') {
+							$wageQ = $ts_db->prepare_statement("SELECT pay_rate FROM {$FANNIE_OP_DB}.employees where emp_no=?");
+							$wageR = $ts_db->exec_statement($wageQ,array($emp_no)) OR DIE (mysql_error());
+							$wage = $ts_db->fetch_row($wageR);				
 							$result = $ts_db->exec_statement($insP,array(
 								$emp_no, $hours[$i],
-								$area[$i], $date, $periodID
+								$area[$i], $date, $periodID, $wage[0], $comment[$i]
 							));
+							
 							if ($result) {$successcount++;} 
 							else {
 								$this->errors[] = 'Query: ' . $query;
@@ -155,12 +161,12 @@ class EditTimesheetDatePage extends FanniePage {
 	}
 
 	function delete_msg(){
-		include ('./includes/header.html');
-		echo '<p>The day has been removed from your timesheet.</p>';
+		// include ('./includes/header.html');
+		echo '<div class="alert"><p>The day has been removed from your timesheet.</p></div>';
 	}
 
 	function error_content(){
-		include ('./includes/header.html');
+		// include ('./includes/header.html');
 		echo '<p><font color="red">The following error(s) occurred:</font></p>';
 		foreach ($this->errors AS $message) {
 			echo "<p> - $message</p>";
