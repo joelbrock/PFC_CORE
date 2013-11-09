@@ -29,7 +29,8 @@ class PFCTenderReport extends TenderReport {
 
 static public function get(){
 	global $CORE_LOCAL;
-
+	$FANNIE_OP_DB = 'core_op';
+	
 	$db = Database::mDataConnect();
 	$shiftCutoff = date('Y-m-d 00:00:00');
 	$excl = " AND emp_no <> 9999 ";
@@ -56,7 +57,7 @@ static public function get(){
 
 	$cashier_names = "";
     $cashierQ = "SELECT CONCAT(SUBSTR(e.FirstName,1,1),SUBSTR(e.Lastname,1,1)) as cashier
-        FROM dlog d, ".$CORE_LOCAL->get('pDatabase').".employees e
+        FROM dlog d, $FANNIE_OP_DB.employees e
         WHERE d.emp_no = e.emp_no AND register_no = ". $CORE_LOCAL->get('laneno')."
 		AND d.emp_no <> 9999
         GROUP BY d.emp_no ORDER BY d.tdate";
@@ -86,9 +87,9 @@ static public function get(){
 
 	foreach(array_keys($DESIRED_TENDERS) as $tender_code){ 
 		$tendersQ = "SELECT t.TenderName, -SUM(d.total), COUNT(d.total) 
-			FROM dlog d, ".$CORE_LOCAL->get('pDatabase').".tenders t
+			FROM dlog d, $FANNIE_OP_DB.tenders t
 			WHERE d.trans_subtype = t.TenderID AND d.register_no=".$CORE_LOCAL->get('laneno').
-			" AND trans_subtype = $tender_code AND d.tdate >= '$shiftCutoff' AND d.emp_no <> 9999";
+			" AND trans_subtype = '$tender_code' AND d.tdate >= '$shiftCutoff' AND d.emp_no <> 9999";
 		$tendersR = $db_a->query($tendersQ);
 		$tender = $db_a->fetch_row($tendersR);
 
