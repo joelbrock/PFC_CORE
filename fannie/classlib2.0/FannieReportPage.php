@@ -97,6 +97,18 @@ class FannieReportPage extends FanniePage
     */
     protected $sort_direction = 0;
 
+    /**
+      Column containing chart labels.
+    */
+    protected $chart_label_column = 0;
+
+    /**
+      Column(s) containing chart data values.
+      An empty array signifies means every column
+      except the label contains data.
+    */
+    protected $chart_data_columns = array();
+
     /** 
         Assign meta constant(s) to a row's "meta" field
         for special behavior.
@@ -110,6 +122,7 @@ class FannieReportPage extends FanniePage
     const META_BOLD         = 1;
     const META_BLANK        = 2;
     const META_REPEAT_HEADERS    = 4;
+    const META_CHART_DATA    = 8;
 
     /**
       Handle pre-display tasks such as input processing
@@ -163,6 +176,7 @@ class FannieReportPage extends FanniePage
             $data = unserialize(gzuncompress($cached));
             if ($data === false) {
                 $data = $this->fetch_report_data();
+                $this->freshenCache($data);
             }
         } else {
             $data = $this->fetch_report_data();
@@ -498,7 +512,13 @@ class FannieReportPage extends FanniePage
             $meta = $row['meta'];
             unset($row['meta']);
         }
-        $ret = "<tr>";
+
+        $ret = '<tr';
+        if (($meta & self::META_CHART_DATA) != 0) {
+            $ret .= ' class="d3ChartData"';
+        }
+        $ret .= '>';
+
         $tag = $header ? 'th' : 'td';
 
         if (($meta & self::META_BOLD) != 0) {
@@ -545,7 +565,18 @@ class FannieReportPage extends FanniePage
                 $align = ' align="right" ';
             }
 
-            $ret .= '<'.$tag.' '.$align.' colspan="'.$span.'">'.$row[$i].'</'.$tag.'>';
+            $class = 'class="reportColumn'.$i;
+            if (($meta & self::META_CHART_DATA) != 0) {
+                if ($i == $this->chart_label_column) {
+                    $class .= ' d3Label ';
+                } else if (is_array($this->chart_data_columns) && 
+                          (count($this->chart_data_columns) == 0 || in_array($i, $this->chart_data_columns))) {
+                    $class .= ' d3Data ';
+                }
+            }
+            $class .= '"';
+
+            $ret .= '<'.$tag.' '.$class.' '.$align.' colspan="'.$span.'">'.$row[$i].'</'.$tag.'>';
             $i += $span;
         }
         $ret .= '</tr>';
@@ -620,6 +651,18 @@ class FannieReportPage extends FanniePage
         }
 
         return $fixup;
+    }
+
+    /**
+      Helper: check default export args
+    */
+    protected function formatCheck()
+    {
+        if (FormLib::get('excel') === 'xls') {
+            $this->report_format = 'xls';
+        } elseif (FormLib::get('excel') === 'csv') {
+            $this->report_format = 'csv';
+        }
     }
 
     /**
