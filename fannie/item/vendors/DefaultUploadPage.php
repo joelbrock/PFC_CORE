@@ -44,13 +44,13 @@ class DefaultUploadPage extends FannieUploadPage {
 			'name' => 'srp',
 			'display_name' => 'SRP',
 			'default' => 1,
-			'required' => True
+			'required' => false
 		),
 		'brand' => array(
 			'name' => 'brand',
 			'display_name' => 'Brand',
 			'default' => 2,
-			'required' => True
+			'required' => false,
 		),
 		'desc' => array(
 			'name' => 'desc',
@@ -68,19 +68,25 @@ class DefaultUploadPage extends FannieUploadPage {
 			'name' => 'qty',
 			'display_name' => 'Case Qty',
 			'default' => 5,
-			'required' => True
+			'required' => true
 		),
 		'size' => array(
 			'name' => 'size',
 			'display_name' => 'Unit Size',
 			'default' => 6,
-			'required' => False
+			'required' => false
 		),
 		'cost' => array(
 			'name' => 'cost',
-			'display_name' => 'Case Cost',
+			'display_name' => 'Case Cost (Reg)',
 			'default' => 7,
-			'required' => True
+			'required' => true
+		),
+		'saleCost' => array(
+			'name' => 'saleCost',
+			'display_name' => 'Case Cost (Reg)',
+			'default' => 8,
+			'required' => true
 		)
 	);
 
@@ -111,12 +117,17 @@ class DefaultUploadPage extends FannieUploadPage {
 		$UPC = $this->get_column_index('upc');
 		$CATEGORY = $this->get_column_index('cat');
 		$REG_COST = $this->get_column_index('cost');
-		$NET_COST = $this->get_column_index('cost');
+		$NET_COST = $this->get_column_index('saleCost');
 		$SRP = $this->get_column_index('srp');
 
 		$itemP = $dbc->prepare_statement("INSERT INTO vendorItems 
 					(brand,sku,size,upc,units,cost,description,vendorDept,vendorID)
 					VALUES (?,?,?,?,?,?,?,?,?)");
+        if (isset($vi_def['saleCost'])) {
+            $itemP = $dbc->prepare_statement("INSERT INTO vendorItems 
+                        (brand,sku,size,upc,units,cost,description,vendorDept,vendorID,saleCost)
+                        VALUES (?,?,?,?,?,?,?,?,?,?)");
+        }
 		$srpP = $dbc->prepare_statement("INSERT INTO vendorSRPs (vendorID, upc, srp) VALUES (?,?,?)");
 
 		foreach($linedata as $data){
@@ -125,21 +136,32 @@ class DefaultUploadPage extends FannieUploadPage {
 			if (!isset($data[$UPC])) continue;
 
 			// grab data from appropriate columns
-			$sku = $data[$SKU];
-			$brand = $data[$BRAND];
+			$sku = ($SKU === false) ? '' : $data[$SKU];
+			$brand = ($BRAND === false) ? '' : $data[$BRAND];
 			$description = $data[$DESCRIPTION];
 			$qty = $data[$QTY];
-			$size = $data[$SIZE1];
-			$upc = substr($data[$UPC],0,13);
+			$size = ($SIZE1 === false) ? '' : $data[$SIZE1];
+            $upc = $data[$UPC];
+            $upc = str_replace(' ', '', $upc);
+            $upc = str_replace('-', '', $upc);
+            if (strlen($upc) > 13) {
+                $upc = substr($upc, 0, 13);
+            } else {
+                $upc = str_pad($upc, 13, '0', STR_PAD_LEFT);
+            }
 			// zeroes isn't a real item, skip it
 			if ($upc == "0000000000000")
 				continue;
 			if ($_SESSION['vUploadCheckDigits'])
 				$upc = '0'.substr($upc,0,12);
-			$category = $data[$CATEGORY];
+			$category = ($CATEGORY === false) ? 0 : $data[$CATEGORY];
 			$reg = trim($data[$REG_COST]);
-			$net = trim($data[$NET_COST]);
-			$srp = trim($data[$SRP]);
+			$net = ($NET_COST !== false) ? trim($data[$NET_COST]) : 0.00;
+            // blank spreadsheet cell
+            if (empty($net)) {
+                $net = 0.00;
+            }
+			$srp = ($SRP === false) ? '' : trim($data[$SRP]);
 			// can't process items w/o price (usually promos/samples anyway)
 			if (empty($reg) or empty($net) or empty($srp))
 				continue;
@@ -151,7 +173,8 @@ class DefaultUploadPage extends FannieUploadPage {
 			$description = str_replace("'","",$description);
 			$reg = str_replace('$',"",$reg);
 			$reg = str_replace(",","",$reg);
-			$net = $reg;
+			$net = str_replace('$',"",$reg);
+			$net = str_replace(",","",$reg);
 			$srp = str_replace('$',"",$srp);
 			$srp = str_replace(",","",$srp);
 
@@ -159,17 +182,23 @@ class DefaultUploadPage extends FannieUploadPage {
 			// this will catch the 'label' line in the first CSV split
 			// since the splits get returned in file system order,
 			// we can't be certain *when* that chunk will come up
-			if (!is_numeric($reg) or !is_numeric($net) or !is_numeric($srp))
+			if (!is_numeric($reg))
 				continue;
 
 			// need unit cost, not case cost
 			$reg_unit = $reg / $qty;
+            $net_unit = $net / $qty;
 
-			$args = array($brand,($sku===False?'':$sku),($size===False?'':$size),
+			$args = array($brand, $sku, $size,
 					$upc,$qty,$reg_unit,$description,$category,$VENDOR_ID);
+            if (isset($vi_def['saleCost'])) {
+                $args[] = $net_unit;
+            }
 			$dbc->exec_statement($itemP,$args);
 
-			$dbc->exec_statement($srpP,array($VENDOR_ID,$upc,$srp));
+            if (is_numeric($srp)) {
+                $dbc->exec_statement($srpP,array($VENDOR_ID,$upc,$srp));
+            }
 		}
 
 		return True;
@@ -238,5 +267,5 @@ class DefaultUploadPage extends FannieUploadPage {
 	}
 }
 
-$obj = new DefaultUploadPage();
-$obj->draw_page();
+FannieDispatch::conditionalExec(false);
+
