@@ -123,9 +123,9 @@ class BasicPage {
 		echo "<link rel=\"stylesheet\" type=\"text/css\"
 		    href=\"{$my_url}/css/pos.css\">";
 		// include store css file if it exists
-		if (file_exists(dirname(__FILE__).'/../store.css')){
+		if (file_exists(dirname(__FILE__).'/../css/store.css')){
 			echo "<link rel=\"stylesheet\" type=\"text/css\"
-			    href=\"{$my_url}/store.css\">";
+			    href=\"{$my_url}/css/store.css\">";
 		}
 		echo "<script type=\"text/javascript\"
 			src=\"{$my_url}/js/jquery.js\"></script>";
@@ -370,7 +370,7 @@ class BasicPage {
 			<?php echo DisplayLib::scaledisplaymsg(); ?>	
 			</div>
 			<div id="scaleIconBox">
-			<?php echo DisplayLib::termdisplaymsg(); ?>
+			<?php echo DisplayLib::drawNotifications(); ?>
 			</div>
 		</div>
 		<?php
@@ -429,12 +429,42 @@ class BasicPage {
 			header("Location: ".$url);
 	}
 
+    /**
+      Callback for javascript scanner-scale polling
+      This one sends scan input to a form field on the
+      page and other inputs through the normal parser
+    */
 	function default_parsewrapper_js($input="reginput",$form="formlocal"){
 	?>
+    <script type="text/javascript" src="<?php echo $this->page_url; ?>js/ajax-parser.js"></script>
 	<script type="text/javascript">
-	function parseWrapper(str){
-		$('#<?php echo $input; ?>').val(str);
-		$('#<?php echo $form; ?>').submit();
+	function parseWrapper(str) {
+        if (/^\d+$/.test(str)) {
+            $('#<?php echo $input; ?>').val(str);
+            $('#<?php echo $form; ?>').submit();
+        } else {
+            runParser(str, '<?php echo $this->page_url; ?>');
+        }
+	}
+	</script>
+	<?php
+	}
+
+    /**
+      Callback for javascript scanner-scale polling
+      This one ignores scan input and runs anything
+      else through the parser
+    */
+	function noscan_parsewrapper_js() {
+	?>
+    <script type="text/javascript" src="<?php echo $this->page_url; ?>js/ajax-parser.js"></script>
+	<script type="text/javascript">
+	function parseWrapper(str) {
+        if (/^\d+$/.test(str)) {
+            // do nothing
+        } else {
+            runParser(str, '<?php echo $this->page_url; ?>');
+        }
 	}
 	</script>
 	<?php

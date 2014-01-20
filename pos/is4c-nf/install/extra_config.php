@@ -251,6 +251,22 @@ if ($CORE_LOCAL->get("scaleDriver") != ""){
 
 <tr><td colspan=2 class="tblHeader">
 <h3>Display Settings</h3></td></tr><tr><td>
+<tr><td>
+<b>Screen Height</b>:</td><td>
+<?php
+if(isset($_REQUEST['VLINES'])) $CORE_LOCAL->set('screenLines',$_REQUEST['VLINES']);
+elseif ($CORE_LOCAL->get('screenLines')==='') $CORE_LOCAL->set('screenLines', 11);
+echo '<select name="VLINES">';
+for($i=9; $i<20; $i++) {
+    printf('<option %s value="%d">%d items</option>',
+        ($i == $CORE_LOCAL->get('screenLines') ? 'selected' : ''), $i, $i+1);
+}
+echo '</select>';
+InstallUtilities::paramSave('screenLines', $CORE_LOCAL->get('screenLines'));
+?>
+<span class='noteTxt'>Number of items to display at once</span>
+</td></tr>
+<tr><td>
 <b>Alert Bar</b>:</td><td>
 <?php
 if (isset($_REQUEST['ALERT'])) $CORE_LOCAL->set('alertBar',$_REQUEST['ALERT']);
@@ -315,7 +331,30 @@ foreach($current_mods as $m)
 $saveStr = rtrim($saveStr,",").")";
 InstallUtilities::paramSave('FooterModules',$current_mods);
 ?>
-</td></tr><tr><td>
+</td></tr>
+<tr><td>
+<b>Notifier Modules</b>:</td><td>
+<?php
+// get current settings
+$current_mods = $CORE_LOCAL->get("notifiers");
+// replace w/ form post if needed
+// fill in defaults if missing
+if (isset($_REQUEST['NOTIFIERS'])) $current_mods = $_REQUEST['NOTIFIERS'];
+elseif(!is_array($current_mods)) {
+	$current_mods = array();
+}
+$notifiers = AutoLoader::listModules('Notifier');
+echo '<select name="NOTIFIERS[]" size="5" multiple>';
+foreach($notifiers as $nm){
+    printf('<option %s>%s</option>',
+        (in_array($nm, $current_mods)?'selected':''),$nm);
+}
+echo '</select><br />';
+InstallUtilities::paramSave('Notifiers',$current_mods);
+?>
+<span class='noteTxt'>Notifiers are displayed on the right below the scale weight</span>
+</td></tr>
+<tr><td>
 <b>Enable onscreen keys</b>:</td><td> <select name=SCREENKEYS>
 <?php
 if(isset($_REQUEST['SCREENKEYS'])){
@@ -353,6 +392,52 @@ window always shows the item listing. Very alpha.</p>
 </td></tr>
 
 
+<tr><td colspan=2 class="tblHeader"><h3>Subtotal Settings</h3></td></tr>
+<!-- Normal/default Yes/True -->
+<tr><td><b>Member ID trigger subtotal</b>:</td><td>
+<?php
+// Get the value from the latest submit, if it existed, into the core_local array ...
+if (array_key_exists('MEMBER_SUBTOTAL', $_REQUEST)) {
+	$CORE_LOCAL->set('member_subtotal',($_REQUEST['MEMBER_SUBTOTAL']==1)?True:False);
+} else if ($CORE_LOCAL->get('member_subtotal') === '') {
+    $CORE_LOCAL->set('member_subtotal', true);
+}
+echo "<select name='MEMBER_SUBTOTAL'>";
+// Display current, or default, value.
+if ($CORE_LOCAL->get('member_subtotal')){
+	echo "<option value='1' selected>Yes</option>";
+	echo "<option value='0' >No</option>";
+	// Save current, or default, value.  After submit, this will be the new value.
+	InstallUtilities::paramSave('member_subtotal', 'True');
+} else {
+	echo "<option value='1' >Yes</option>";
+	echo "<option value='0' selected>No</option>";
+	// Save current, or default, value.  After submit, this will be the new value.
+	InstallUtilities::paramSave('member_subtotal', 'False');
+}
+?>
+</td></tr>
+<tr><td><b>Subtotal Actions</b></td>
+<td rowspan="2"><select name="TotalActions[]" size="10" multiple>
+<?php
+$mods = AutoLoader::listModules('TotalAction');
+$current = $CORE_LOCAL->get('TotalActions');
+if (isset($_REQUEST['TotalActions'])) {
+    $current = $_REQUEST['TotalActions'];
+}
+if (!is_array($current)) {
+    $current = array();
+}
+foreach($mods as $mod) {
+    printf('<option %s>%s</option>',
+        (in_array($mod, $current) ? 'selected' : ''),
+        $mod);
+}
+InstallUtilities::paramSave('TotalActions', $current);
+?>
+</select></td></tr>
+<tr><td>These are additional bits of functionality that
+will occur whenever a transaction is subtotalled.</td></tr>
 
 
 <tr><td colspan=2 class="tblHeader"><h3>Tender Settings</h3></td></tr>
@@ -550,49 +635,13 @@ printf("<br /><input size=4 type=text name=SigCapture value=\"%s\" />",$CORE_LOC
 InstallUtilities::paramSave('SigCapture',$CORE_LOCAL->get('SigCapture'));
 ?>
 <i>(blank for none)</i></td></tr>
+<!--
 <tr><td colspan=2 class="tblHeader">
 <h3>Various</h3>
 <p>This group was started in order to handle variations as options rather than per-coop code variations.</p>
-<h4 style="margin: 0.25em 0.0em 0.25em 0.0em;">Related to transactions:</h4></td></tr><tr><td>
+<h4 style="margin: 0.25em 0.0em 0.25em 0.0em;">Related to transactions:</h4></td></tr>
+-->
 
-<!-- Normal/default Yes/True -->
-<b>Member ID trigger subtotal</b>:</td><td>
-<?php
-// Get the value from the latest submit, if it existed, into the core_local array ...
-if (array_key_exists('MEMBER_SUBTOTAL', $_REQUEST)){
-	$CORE_LOCAL->set('member_subtotal',($_REQUEST['MEMBER_SUBTOTAL']==1)?True:False);
-}
-// ... or from CORE_LOCAL if it is known ...
-elseif ( $CORE_LOCAL->get("member_subtotal") === False ) {
-		$noop = "";
-}
-elseif ( $CORE_LOCAL->get("member_subtotal") === True ) {
-		$noop = "";
-}
-// ... or set the default value ...
-elseif ( $CORE_LOCAL->get("member_subtotal") == NULL ) {
-		$CORE_LOCAL->set('member_subtotal', True, True);
-}
-// ... or complain (unexpected actual values such as 0 or 1). 
-else {
-	echo "<br />Current value of 'member_subtotal' unrecognized.";
-}
-echo "<select name='MEMBER_SUBTOTAL'>";
-// Display current, or default, value.
-if ($CORE_LOCAL->get('member_subtotal')){
-	echo "<option value='1' selected>Yes</option>";
-	echo "<option value='0' >No</option>";
-	// Save current, or default, value.  After submit, this will be the new value.
-	InstallUtilities::paramSave('member_subtotal', 'True');
-}
-else {
-	echo "<option value='1' >Yes</option>";
-	echo "<option value='0' selected>No</option>";
-	// Save current, or default, value.  After submit, this will be the new value.
-	InstallUtilities::paramSave('member_subtotal', 'False');
-}
-?>
-</td></tr>
 <tr><td colspan=2 class="submitBtn">
 <input type=submit name=esubmit value="Save Changes" />
 </td></tr>

@@ -222,11 +222,9 @@ static public function setMember($member, $personNumber, $row)
 	// 16Sep12 Eric Lee Allow  not append Subtotal at this point.
 	if ( $CORE_LOCAL->get("member_subtotal") === false ) {
 		$noop = "";
-	} elseif ( $CORE_LOCAL->get("member_subtotal") === true ) {
+	} else {
 		self::ttl();
-	} elseif ( $CORE_LOCAL->get("member_subtotal") == '' ) {
-		self::ttl();
-	}
+	} 
 }
 
 /**
@@ -702,6 +700,30 @@ static public function ttl()
 		$CORE_LOCAL->set("ttlflag",1);
 		Database::setglobalvalue("TTLFlag", 1);
 
+        // if total is called before records have been added to the transaction,
+        // Database::getsubtotals will zero out the discount
+        $savePD = $CORE_LOCAL->get('percentDiscount');
+
+		// Refresh totals after staff and member discounts.
+		Database::getsubtotals();
+
+        $ttlHooks = $CORE_LOCAL->get('TotalActions');
+        if (is_array($ttlHooks)) {
+            foreach($ttlHooks as $ttl_class) {
+                if (!class_exists($ttl_class)) continue;
+                $mod = new $ttl_class();
+                $result = $mod->apply();
+                if ($result !== true && is_string($result)) {
+                    return $result; // redirect URL
+                }
+            }
+        }
+
+		// Refresh totals after total actions
+		Database::getsubtotals();
+
+        $CORE_LOCAL->set('percentDiscount', $savePD);
+
 		if ($CORE_LOCAL->get("percentDiscount") > 0) {
 			if ($CORE_LOCAL->get("member_subtotal") === false) {
 				TransRecord::addItem("", "Subtotal", "", "", "D", 0, 0, MiscLib::truncate2($CORE_LOCAL->get("transDiscount") + $CORE_LOCAL->get("subtotal")), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7);
@@ -1019,9 +1041,15 @@ static public function chargeOk()
 	Database::getsubtotals();
 
 	$conn = Database::pDataConnect();
-	$query = "select m.availBal,m.balance,c.ChargeOk from memchargebalance as m
-		left join custdata AS c ON m.CardNo=c.CardNo AND c.personNum=1
-		where m.CardNo = '".$CORE_LOCAL->get("memberID")."'";
+	$query = "SELECT c.ChargeLimit - c.Balance AS availBal,
+        c.Balance, c.ChargeOk
+		FROM custdata AS c 
+		WHERE c.personNum=1 AND c.CardNo = " . ((int)$CORE_LOCAL->get("memberID"));
+    $table_def = $conn->table_definition('custdata');
+    // 3Jan14 schema may not have been updated
+    if (!isset($table_def['ChargeLimit'])) {
+        $query = str_replace('c.ChargeLimit', 'c.MemDiscountLimit', $query);
+    }
 
 	$result = $conn->query($query);
 	$num_rows = $conn->num_rows($result);
@@ -1029,7 +1057,7 @@ static public function chargeOk()
 
 	$availBal = $row["availBal"] + $CORE_LOCAL->get("memChargeTotal");
 	
-	$CORE_LOCAL->set("balance",$row["balance"]);
+	$CORE_LOCAL->set("balance",$row["Balance"]);
 	$CORE_LOCAL->set("availBal",number_format($availBal,2,'.',''));	
 	
 	$chargeOk = 1;

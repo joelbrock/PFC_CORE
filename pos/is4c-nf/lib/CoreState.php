@@ -454,11 +454,21 @@ static public function transReset()
 	*/
 	$CORE_LOCAL->set("paycard_keyed",False);
 
-	foreach($CORE_LOCAL->get('PluginList') as $p){
-		if (!class_exists($p)) continue;
-		$obj = new $p();
-		$obj->plugin_transaction_reset();
-	}
+    if (is_array($CORE_LOCAL->get('PluginList'))) {
+        foreach($CORE_LOCAL->get('PluginList') as $p) {
+            if (!class_exists($p)) continue;
+            $obj = new $p();
+            $obj->plugin_transaction_reset();
+        }
+    }
+
+    if (is_array($CORE_LOCAL->get('Notifiers'))) {
+        foreach($CORE_LOCAL->get('Notifiers') as $n) {
+            if (!class_exists($n)) continue;
+            $obj = new $n();
+            $obj->transactionReset();
+        }
+    }
 }
 
 /**
@@ -623,7 +633,7 @@ static public function loadData()
 		$result = $db_product->query($query_member);
 		if ($db_product->num_rows($result) > 0) {
 			$row = $db_product->fetch_array($result);
-			$CORE_LOCAL->set("memMsg",self::blueLine($row));
+			$CORE_LOCAL->set("memMsg",$row['blueLine']);
 			$CORE_LOCAL->set("memType",$row["memType"]);
 			$CORE_LOCAL->set("percentDiscount",$row["Discount"]);
 
@@ -764,9 +774,9 @@ static public function loadParams(){
                 }
                 $value = $tmp;
             }
-        } else if (strtoupper($value === 'TRUE')) {
+        } else if (strtoupper($value) === 'TRUE') {
             $value = true;
-        } else if (strtoupper($value === 'FALSE')) {
+        } else if (strtoupper($value) === 'FALSE') {
             $value = false;
         }
 

@@ -298,7 +298,12 @@ class MemArTransferTool extends FanniePage {
 		else {
 			$nameP = $dbc->prepare_statement("SELECT dept_name FROM {$OP}departments WHERE dept_no=?");
 			$nameR = $dbc->exec_statement($nameP,$department);
-			$defaults['description'] = array_pop($dbc->fetch_row($nameR));
+            if ($dbc->num_rows($nameR) == 0) {
+                $defaults['description'] = 'CORRECTIONS';
+            } else {
+                $nameW = $dbc->fetch_row($nameR);
+                $defaults['description'] = $nameW['dept_name'];
+            }
 		}
 
 		$q = $dbc->prepare_statement("SELECT memType,Staff FROM {$OP}custdata WHERE CardNo=?");
@@ -322,9 +327,6 @@ class MemArTransferTool extends FanniePage {
 	}
 }
 
-if (basename($_SERVER['PHP_SELF']) == basename(__FILE__)){
-	$obj = new MemArTransferTool();
-	$obj->draw_page();
-}
+FannieDispatch::conditionalExec(false);
 
 ?>

@@ -71,6 +71,7 @@ array('label'=>'Item Maintenance','url'=>'item/ItemEditorPage.php','subheading'=
 	),
 	array('label'=>'Manage Likcodes','url'=>'item/likecodes/'),
 	array('label'=>'Manage Vendors','url'=>'item/vendors/')
+	array('label'=>'Store Coupons','url'=>'modules/plugins2.0/HouseCoupon/')
 	)
 ),
 array('label'=>'Sales Batches','url'=>'batches/','subheading'=>'Create automated sales & price changes',
@@ -127,7 +128,7 @@ array('label'=>'Synchronize','url'=>'sync/','subheading'=>'Update cash registers
 	array('label'=>'Member Cards','url'=>'sync/TableSyncPage.php?tablename=memberCards'),
 	array('label'=>'Employees','url'=>'sync/TableSyncPage.php?tablename=employees'),
 	array('label'=>'Departments','url'=>'sync/TableSyncPage.php?tablename=departments'),
-	array('label'=>'Sub Departments','url'=>'sync/TableSyncPage.php?tablename=subdepts')
+	array('label'=>'Super Departments','url'=>'sync/TableSyncPage.php?tablename=MasterSuperDepts')
 	)
 ),
 array('label'=>'Admin','url'=>'admin/','subheading'=>'Administrative functions, etc.',

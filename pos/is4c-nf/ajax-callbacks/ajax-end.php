@@ -80,6 +80,7 @@ if (strlen($receiptType) > 0) {
         cleartemptrans($receiptType);
         $output = $yesSync;
         UdpComm::udpSend("termReset");
+        $CORE_LOCAL->set('ccTermState','swipe');
     }
 
     // close session so if printer hangs
@@ -187,7 +188,8 @@ function moveTempData()
     if ($connection->table_exists('localtrans_today')) {
         $connection->query("insert into localtrans_today select * from localtemptrans");
     }
-    $connection->query("insert into dtransactions select * from localtemptrans");
+    $cols = Database::localMatchingColumns($connection, 'dtransactions', 'localtemptrans');
+    $connection->query("insert into dtransactions ($cols) select $cols from localtemptrans");
 
     /** 
     alog and its variants are never used.

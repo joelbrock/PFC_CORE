@@ -28,7 +28,6 @@ if (!file_exists(dirname(__FILE__).'/../config.php')){
 	echo "and put this in it:<br />";
 	echo "<div style=\"border: 1px solid black;padding: 5em;\">";
 	echo '&lt;?php<br />';
-	echo '?&gt;';
 	echo '</div>';	
 	exit;	
 }
@@ -746,6 +745,9 @@ class InstallIndexPage extends InstallPage {
 				'superDeptNames','op');
 
 		$ret[] = create_if_needed($con,$FANNIE_SERVER_DBMS,$FANNIE_OP_DB,
+				'superDeptEmails','op');
+
+		$ret[] = create_if_needed($con,$FANNIE_SERVER_DBMS,$FANNIE_OP_DB,
 				'superMinIdView','op');
 
 		$ret[] = create_if_needed($con,$FANNIE_SERVER_DBMS,$FANNIE_OP_DB,
@@ -984,6 +986,9 @@ class InstallIndexPage extends InstallPage {
 
 		$ret[] = create_if_needed($con,$FANNIE_SERVER_DBMS,$FANNIE_OP_DB,
 				'custReceiptMessage','op');
+
+		$ret[] = create_if_needed($con,$FANNIE_SERVER_DBMS,$FANNIE_OP_DB,
+				'usageStats','op');
 
 		return $ret;
 
@@ -1464,6 +1469,8 @@ class InstallIndexPage extends InstallPage {
 			charflag,
 			card_no,
 			trans_id,
+            pos_row_id,
+            store_row_id,
 			".$con->concat(
 				$con->convert('emp_no','char'),"'-'",
 				$con->convert('register_no','char'),"'-'",
@@ -1670,8 +1677,6 @@ class InstallIndexPage extends InstallPage {
 // InstallIndexPage
 }
 
-if (basename(__FILE__) == basename($_SERVER['PHP_SELF'])){
-	$obj = new InstallIndexPage();
-	$obj->draw_page();
-}
+FannieDispatch::conditionalExec(false);
+
 ?>

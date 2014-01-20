@@ -384,9 +384,11 @@ static public function uploadtoServer()
         $CORE_LOCAL->get("mDatabase"),"insert into dtransactions ({$dt_matches})")) {
     
         // Moved up
-        $connect->query("truncate table dtransactions",
+        // DO NOT TRUNCATE; that resets AUTO_INCREMENT
+        $connect->query("DELETE FROM dtransactions",
             $CORE_LOCAL->get("tDatabase"));
 
+        /* alog deprecated
         $al_matches = self::getMatchingColumns($connect,"alog");
         // interval is a mysql reserved word
         // so it needs to be escaped
@@ -400,6 +402,11 @@ static public function uploadtoServer()
             "select $local_columns FROM alog",
             $CORE_LOCAL->get("mDatabase"),
             "insert into alog ($server_columns)");
+        if ($al_success) {
+            $connect->query("truncate table alog",
+                $CORE_LOCAL->get("tDatabase"));
+        }
+        */
 
         $su_matches = self::getMatchingColumns($connect,"suspended");
         $su_success = $connect->transfer($CORE_LOCAL->get("tDatabase"),
@@ -407,10 +414,6 @@ static public function uploadtoServer()
             $CORE_LOCAL->get("mDatabase"),
             "insert into suspended ({$su_matches})");
 
-        if ($al_success) {
-            $connect->query("truncate table alog",
-                $CORE_LOCAL->get("tDatabase"));
-        }
         if ($su_success) {
             $connect->query("truncate table suspended",
                 $CORE_LOCAL->get("tDatabase"));
@@ -438,7 +441,7 @@ static public function uploadtoServer()
    @param $table_name the table
    @param $table2 is provided, it match columns from
     local.table_name against remote.table2
-   @return an array of column names
+   @return [string] comma separated list of column names
 */
 static public function getMatchingColumns($connection,$table_name,$table2="")
 {
@@ -471,7 +474,7 @@ static public function getMatchingColumns($connection,$table_name,$table2="")
     already connected
    @param $table1 a database table
    @param $table2 a database table
-   @return an array of column names common to both tables
+   @return [string] comma separated list of column names
  */
 static public function localMatchingColumns($connection,$table1,$table2)
 {
