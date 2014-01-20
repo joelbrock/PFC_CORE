@@ -463,7 +463,9 @@ class HouseCoupon extends SpecialUPC
                 $transDB = Database::tDataConnect();
                 $transDB->query(sprintf('UPDATE localtemptrans SET percentDiscount=%f',$ttlPD));
 
-				$value = $infoW["discountValue"] * $CORE_LOCAL->get("discountableTotal");
+                // still need to add a line-item with the coupon UPC to the
+                // transaction to track usage
+                $value = 0;
                 break;
         }
 
