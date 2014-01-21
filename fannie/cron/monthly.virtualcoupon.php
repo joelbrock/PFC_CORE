@@ -48,14 +48,14 @@ $TRANS = ($FANNIE_SERVER_DBMS == "MSSQL") ? $FANNIE_TRANS_DB.".dbo." : $FANNIE_T
 // clear out houseVirtualCoupons
 $sql->query("TRUNCATE TABLE houseVirtualCoupons");
 
-echo cron_msg("Truncate table houseVirtualCoupons<br />");
+echo cron_msg("Truncate table " . $FANNIE_OP_DB . ".houseVirtualCoupons<br />");
 
 // re-populate houseVirtualCoupons
 $insQ = "INSERT INTO houseVirtualCoupons (card_no,coupID,description,start_date,end_date) 
-	SELECT c.CardNo, '00001', 'Owner Appreciation 10% Discount', DATE_FORMAT(NOW() ,'%Y-%m-01 00:00:00'), 
+	SELECT c.CardNo, '00001', 'Member Appreciation Discount 10%', DATE_FORMAT(NOW() ,'%Y-%m-01 00:00:00'), 
 	CONCAT(LAST_DAY(NOW()),' 23:59:59') FROM custdata AS c WHERE c.memType <> 0";
 $insR = $sql->query($insQ);
-echo cron_msg("Re-populate houseVirtualCoupons");
+echo cron_msg("Re-populate " . $FANNIE_OP_DB . ".houseVirtualCoupons");
 
 // set custdata.memcoupons equal to the number
 // of available coupons (in theory)
@@ -77,5 +77,5 @@ $blueLineQ = "UPDATE custdata SET blueLine="
 	. "WHERE memType <> 0";
 $sql->query($blueLineQ);
 
-echo cron_msg("Updated values in core_op.custdata");
+echo cron_msg("Updated values in " . $FANNIE_OP_DB . ".custdata");
 ?>
