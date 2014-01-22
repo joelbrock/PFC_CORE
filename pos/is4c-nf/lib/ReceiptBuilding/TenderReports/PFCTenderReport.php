@@ -107,14 +107,12 @@ static public function get(){
     $receipt .=	trTotal('FS','SNAP - FOOD');
     $receipt .=	trTotal('EC','SNAP - CASH');
     $receipt .=	trTotal('GC','GIFT CARD');
-    $receipt .=	trTotal('MI','INSTORE CHARGE');
+    $receipt .=	trTotal('MI','STORE CHARGE');
     $receipt .=	trTotal('IC','INSTORE COUPON');
     $receipt .=	trTotal('PT','PATRONAGE');
     $receipt .= "\n";
     $receipt .=	trTotal(array('CA','CK'),'CASH + CHECK');
     $receipt .=	trTotal(array('DC','CC','FS','EC'),'DEB/CRED/SNAP');
-	$receipt .= "House Charge?\n";
-	$receipt .= "House Coupon?\n";
     $receipt .=	trTotal(45,'RCVD. on ACCT.');
     $receipt .=	trTotal(37,'FRMRS MARKET SNAP');
 
