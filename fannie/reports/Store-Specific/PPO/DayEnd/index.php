@@ -212,7 +212,7 @@ class DayEndReport extends FannieReportPage
     {
 		$start = date('Y-m-d',strtotime('yesterday'));
 		?>
-		<form action=GeneralDayReport.php method=get>
+		<form action=index.php method=get>
 		<table cellspacing=4 cellpadding=4>
 		<tr>
 		<th>Date</th>
