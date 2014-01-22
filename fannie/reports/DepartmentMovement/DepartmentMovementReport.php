@@ -192,8 +192,8 @@ class DepartmentMovementReport extends FannieReportPage
             $record = array();
             if ($groupby == "Date") {
                 $record[] = $row[1]."/".$row[2]."/".$row[0];
-                $record[] = $row[3];
-                $record[] = $row[4];
+                $record[] = number_format($row[3],2);
+                $record[] = number_format($row[4],2);
             } else {
                 for($i=0;$i<$dbc->num_fields($result);$i++) {
                     $record[] .= $row[$i];
