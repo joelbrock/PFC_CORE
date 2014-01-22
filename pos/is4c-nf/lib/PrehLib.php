@@ -772,7 +772,7 @@ static public function ttl()
 		}
 	
 		if ($CORE_LOCAL->get("fntlflag") == 1) {
-			TransRecord::addItem("", "Foodstamps Eligible", "", "", "D", 0, 0, MiscLib::truncate2($CORE_LOCAL->get("fsEligible")), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7);
+			TransRecord::addItem("", "Eligible Amount", "", "", "D", 0, 0, MiscLib::truncate2($CORE_LOCAL->get("fsEligible")), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7);
 		}
 
 	}
@@ -915,7 +915,7 @@ static public function omtr_ttl()
 		}
 	
 		if ($CORE_LOCAL->get("fntlflag") == 1) {
-			TransRecord::addItem("", "Foodstamps Eligible", "", "", "D", 0, 0, MiscLib::truncate2($CORE_LOCAL->get("fsEligible")), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7);
+			TransRecord::addItem("", "Eligible Amount", "", "", "D", 0, 0, MiscLib::truncate2($CORE_LOCAL->get("fsEligible")), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7);
 		}
 
 	}
@@ -977,7 +977,7 @@ static public function fsEligible()
 		$CORE_LOCAL->set("fntlflag",1);
 		Database::setglobalvalue("FntlFlag", 1);
 		if ($CORE_LOCAL->get("ttlflag") != 1) return self::ttl();
-		else TransRecord::addItem("", "Foodstamps Eligible", "" , "", "D", 0, 0, MiscLib::truncate2($CORE_LOCAL->get("fsEligible")), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7);
+		else TransRecord::addItem("", "Eligible Amount", "" , "", "D", 0, 0, MiscLib::truncate2($CORE_LOCAL->get("fsEligible")), 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 7);
 
 		return true;
 	}
