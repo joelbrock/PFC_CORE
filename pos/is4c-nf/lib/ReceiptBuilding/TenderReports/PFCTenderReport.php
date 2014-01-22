@@ -55,7 +55,7 @@ static public function get(){
 	$ref = ReceiptLib::centerString(trim($CORE_LOCAL->get("CashierNo"))." ".trim($CORE_LOCAL->get("cashier"))." ".ReceiptLib::build_time(time()))."\n";
 
 	$cashier_names = "";
-    $cashierQ = "SELECT CONCAT(SUBSTR(e.FirstName,1,1),". ",e.Lastname,1,1) as cashier
+    $cashierQ = "SELECT CONCAT(SUBSTR(e.FirstName,1,1),". ",e.Lastname) as cashier
 		FROM dlog d, ".$CORE_LOCAL->get('pDatabase').".employees e
         WHERE d.emp_no = e.emp_no AND d.register_no = ". $CORE_LOCAL->get('laneno')." AND d.emp_no <> 9999 AND d.trans_type <> 'L' 
 		AND d.tdate >= '".$shiftCutoff."'
