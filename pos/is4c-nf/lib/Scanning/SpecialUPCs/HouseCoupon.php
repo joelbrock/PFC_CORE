@@ -465,7 +465,7 @@ class HouseCoupon extends SpecialUPC
 
                 // still need to add a line-item with the coupon UPC to the
                 // transaction to track usage
-                $value = $CORE_LOCAL->get("percentDiscount") * 0.000001;
+                $value = 0;
                 break;
         }
 
