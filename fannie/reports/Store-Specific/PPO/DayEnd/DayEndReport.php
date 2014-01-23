@@ -24,6 +24,7 @@
 include('../../../../config.php');
 include($FANNIE_ROOT.'classlib2.0/FannieAPI.php');
 include('../reportFunctions.php');
+
 class DayEndReport extends FannieReportPage 
 {
     protected $title = "Fannie : Day End Report";
@@ -42,11 +43,28 @@ class DayEndReport extends FannieReportPage
         $dbc = FannieDB::get($FANNIE_OP_DB);
 		$d1 = FormLib::get_form_value('date1',date('Y-m-d'));
 		$dates = array($d1.' 00:00:00',$d1.' 23:59:59');
+		$dlog = DTransactionsModel::selectDlog($d1);
 		$data = array();
 
-		$dlog = DTransactionsModel::selectDlog($d1);
+		$grossQ = $dbc->prepare_statement("SELECT ROUND(sum(total),2) as GROSS_sales
+			FROM $dlog WHERE tdate BETWEEN ? AND ?
+			AND department BETWEEN 1 AND ?
+			AND trans_subtype NOT IN ('IC', 'MC', 'CP')");
+		$grossR = $dbc->exec_statement($grossQ,$dates,$invDept);
+		$grossW = $dbc->fetch_row($grossR);
+		$gross = ($grossW[0]) ? $grossW[0] : 0;
 
-		echo "Gross Total: " . number_format(gross(),2) . "<br />";
+		$hashQ = $dbc->prepare_statement("SELECT ROUND(sum(total),2) AS HASH_sales
+			FROM $dlog WHERE tdate BETWEEEN ? AND ?
+			AND department IN (30,31,32,33,34,35,36,38,39,40,41,42,43,44)
+			AND trans_subtype NOT IN ('IC', 'MC', 'CP')");
+		$hashR = $dbc->exec_statement($hashQ,$dates);
+		$hashW = $dbc->fetch_row($hashR);
+		$hash = ($hashW[0]) ? $hash[0] : 0;
+		
+		echo "Gross Total: " . number_format($gross,2) . "<br />";
+		echo "Non-Inventory Total: " . number_format($hash,2) . "<br />";
+
 
 		$tenderQ = $dbc->prepare_statement("SELECT 
 			TenderName,count(d.total),sum(d.total) as total
