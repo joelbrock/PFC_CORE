@@ -276,7 +276,7 @@ class DayEndReport extends FannieReportPage
 			return array();
 			break;
 		case 7:
-			$this->report_headers[0] = 'Discounts';
+			$this->report_headers = array('Discounts','Qty','Amount');
 			break;
 		case 8:
 			$this->report_headers = array('Mem#','Equity Type', 'Amount');
