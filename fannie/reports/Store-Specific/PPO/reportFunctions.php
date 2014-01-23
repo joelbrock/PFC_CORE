@@ -35,10 +35,10 @@ function gross() {
 	// if (!isset($date2)) {$date2 = $date1;}
 	
 	$grossQ = $dbc->prepare_statement("SELECT ROUND(sum(total),2) as GROSS_sales
-		FROM $table WHERE tdate BETWEEN ? AND ?
-		AND department BETWEEN 1 AND $invDept
+		FROM ? WHERE tdate BETWEEN ? AND ?
+		AND department BETWEEN 1 AND ?
 		AND trans_subtype NOT IN ('IC', 'MC', 'CP')");
-	$grossR = $dbc->exec_statement($grossQ,$dates);
+	$grossR = $dbc->exec_statement($grossQ,$table,$dates,$invDept);
 	$grossW = $dbc->fetch_row($grossR);
 	$gross = ($grossW[0]) ? $grossW[0] : 0;
 
