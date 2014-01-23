@@ -23,7 +23,7 @@
 
 include('../../../../config.php');
 include($FANNIE_ROOT.'classlib2.0/FannieAPI.php');
-
+include('../reportFunctions.php');
 class DayEndReport extends FannieReportPage 
 {
     protected $title = "Fannie : Day End Report";
@@ -45,6 +45,9 @@ class DayEndReport extends FannieReportPage
 		$data = array();
 
 		$dlog = DTransactionsModel::selectDlog($d1);
+
+		echo "Gross Total: " . number_format(gross(),2) . "<br />";
+
 		$tenderQ = $dbc->prepare_statement("SELECT 
 			TenderName,count(d.total),sum(d.total) as total
 			FROM $dlog as d , tenders as t 
