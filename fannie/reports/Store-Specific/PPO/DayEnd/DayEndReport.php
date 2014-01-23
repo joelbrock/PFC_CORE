@@ -125,6 +125,23 @@ class DayEndReport extends FannieReportPage
 		}
 		$data[] = $report;
 
+		$invTotQ = $dbc->prepare_statement("SELECT m.dept_name,sum(d.quantity) as qty,
+				sum(d.total) as total, ROUND((SUM(d.total)/$gross)*100,2) as pct FROM $dlog AS d LEFT JOIN
+				departments AS m ON d.department=m.dept_no
+				WHERE d.tdate BETWEEN ? AND ?
+				AND d.department <> 0 AND d.trans_type <> 'T'
+				GROUP BY m.dept_name ORDER BY m.dept_name");
+		$invTotR = $dbc->exec_statement($invTotQ,$dates);
+		$report = array();
+		while($invTotW = $dbc->fetch_row($invTotR)){
+			$record = array($invTotW['dep_name'],
+					sprintf('%.2f',$invTotW['qty']),
+					sprintf('%.2f',$invTotW['total']),
+					sprintf('%.2f',$invTotW['pct']));
+			$report[] = $record;
+		}
+		$data[] = $report;
+
 		$tenderQ = $dbc->prepare_statement("SELECT 
 			TenderName,count(d.total),sum(d.total) as total
 			FROM $dlog as d , tenders as t 
@@ -263,22 +280,25 @@ class DayEndReport extends FannieReportPage
 			$this->report_headers[0] = 'Sales';
 			break;
 		case 3:
-			$this->report_headers[0] = 'Tenders';
+			$this->report_headers = array('Departments', 'Qty', 'Amount', 'Pct');
 			break;
 		case 4:
-			$this->report_headers = array('Instore Coupons','Qty','Amount');
+			$this->report_headers[0] = 'Tenders';
 			break;
 		case 5:
-			$this->report_headers = array('Store Charges','Qty','Amount');
+			$this->report_headers = array('Instore Coupons','Qty','Amount');
 			break;
 		case 6:
+			$this->report_headers = array('Store Charges','Qty','Amount');
+			break;
+		case 7:
 			$this->report_headers = array('Type','Trans','Items','Avg. Items','Amount','Avg. Amount');
 			return array();
 			break;
-		case 7:
+		case 8:
 			$this->report_headers = array('Discounts','Qty','Amount');
 			break;
-		case 8:
+		case 9:
 			$this->report_headers = array('Mem#','Equity Type', 'Amount');
 			break;
 		}
