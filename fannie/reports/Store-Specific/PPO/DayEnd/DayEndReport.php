@@ -70,10 +70,14 @@ class DayEndReport extends FannieReportPage
 		$coupsW = $dbc->fetch_row($coupsR);
 		$coups = ($coupsW[0]) ? $coups[0] : 0;
 		
-		$data[] = "Gross Total: " . number_format($gross,2) . "<br />";
-		$data[] = "Non-Inventory Total: " . number_format($hash,2) . "<br />";
-		$data[] = "Coups + Gift Certs: " . number_format($coups,2) . "<br />";
+		$totals = array();
+		
+		$totals[] = "Gross Total", number_format($gross,2);
+		$totals[] = "Non-Inventory Total", number_format($hash,2);
+		$totals[] = "Coups + Gift Certs", number_format($coups,2);
  		
+		$data[] = $totals;
+		
 		$tenderQ = $dbc->prepare_statement("SELECT 
 			TenderName,count(d.total),sum(d.total) as total
 			FROM $dlog as d , tenders as t 
