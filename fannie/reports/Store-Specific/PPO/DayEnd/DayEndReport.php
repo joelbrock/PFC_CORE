@@ -244,6 +244,6 @@ class DayEndReport extends FannieReportPage
 
 }
 
-FannieDispatch::conditionalExec(false);
+FannieDispatch::conditionalExec(true);
 
 ?>
