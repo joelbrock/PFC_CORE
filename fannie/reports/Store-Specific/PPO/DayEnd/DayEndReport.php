@@ -33,7 +33,8 @@ class DayEndReport extends FannieReportPage
     protected $grandTTL = 1;
     protected $multi_report_mode = True;
     protected $sortable = False;
-
+	protected $invDept = 20; 				// upper limit of inventory dept numbers
+	
     protected $report_headers = array('Desc','Qty','Amount');
     protected $required_fields = array('date1');
 
