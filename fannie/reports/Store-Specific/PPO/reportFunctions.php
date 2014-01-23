@@ -31,9 +31,9 @@ $dates = array($d1.' 00:00:00',$d1.' 23:59:59');
 $table = DTransactionsModel::selectDlog($d1);
 
 function gross() {
-	
-	// if (!isset($date2)) {$date2 = $date1;}
-	
+	global $FANNIE_ARCHIVE_DB;
+	$dbc = FannieDB::get($FANNIE_ARCHIVE_DB);
+		
 	$grossQ = $dbc->prepare_statement("SELECT ROUND(sum(total),2) as GROSS_sales
 		FROM ? WHERE tdate BETWEEN ? AND ?
 		AND department BETWEEN 1 AND ?
