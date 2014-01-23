@@ -134,7 +134,7 @@ class DayEndReport extends FannieReportPage
 		$invTotR = $dbc->exec_statement($invTotQ,$dates);
 		$report = array();
 		while($invTotW = $dbc->fetch_row($invTotR)){
-			$record = array($invTotW['dep_name'],
+			$record = array($invTotW['dept_name'],
 					sprintf('%.2f',$invTotW['qty']),
 					sprintf('%.2f',$invTotW['total']),
 					sprintf('%.2f',$invTotW['pct']));
