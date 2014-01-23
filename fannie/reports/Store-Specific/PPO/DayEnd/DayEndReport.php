@@ -50,7 +50,7 @@ class DayEndReport extends FannieReportPage
 		$grossQ = $dbc->prepare_statement("SELECT ROUND(sum(total),2) as GROSS_sales
 			FROM $dlog WHERE tdate BETWEEN ? AND ?
 			AND department BETWEEN 1 AND 20
-			AND trans_subtype NOT IN ('IC', 'MC', 'CP')");
+			AND trans_type <> 'T'");
 		$grossR = $dbc->exec_statement($grossQ,$dates);
 		$grossW = $dbc->fetch_row($grossR);
 		$gross = ($grossW[0]) ? $grossW[0] : 0;
@@ -58,7 +58,7 @@ class DayEndReport extends FannieReportPage
 		$hashQ = $dbc->prepare_statement("SELECT ROUND(sum(total),2) AS HASH_sales
 			FROM $dlog WHERE tdate BETWEEN ? AND ?
 			AND department IN (30,31,32,33,34,35,36,38,39,40,41,42,43,44)
-			AND trans_subtype NOT IN ('IC', 'MC', 'CP')");
+			AND trans_type <> 'T'");
 		$hashR = $dbc->exec_statement($hashQ,$dates);
 		$hashW = $dbc->fetch_row($hashR);
 		$hash = ($hashW[0]) ? $hashW[0] : 0;
