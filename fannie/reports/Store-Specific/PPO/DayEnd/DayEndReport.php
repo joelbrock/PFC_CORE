@@ -301,7 +301,7 @@ class DayEndReport extends FannieReportPage
 			$this->report_headers = array('Non-Inventory Dept.', 'Qty', 'Amount', 'Pct');
 			break;
 		case 5:
-			$this->report_headers[0] = 'Tenders';
+			$this->report_headers = array('Tenders', 'Qty', 'Amount');
 			break;
 		case 6:
 			$this->report_headers = array('Instore Coupons','Qty','Amount');
