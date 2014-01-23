@@ -249,7 +249,7 @@ class DayEndReport extends FannieReportPage
     {
 		switch($this->multi_counter){
 		case 1:
-			$this->report_headers = 'Net Total', null, 'Amount';
+			$this->report_headers = 'Totals', '', 'Amount';
 			break;
 		case 2:
 			$this->report_headers[0] = 'Tenders';
