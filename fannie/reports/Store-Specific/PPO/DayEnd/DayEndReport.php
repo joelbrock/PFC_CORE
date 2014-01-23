@@ -109,22 +109,6 @@ class DayEndReport extends FannieReportPage
 		
 		$data[] = $totals;
 		
-		$tenderQ = $dbc->prepare_statement("SELECT 
-			TenderName,count(d.total),sum(d.total) as total
-			FROM $dlog as d , tenders as t 
-			WHERE d.tdate BETWEEN ? AND ?
-			AND d.trans_subtype = t.TenderCode
-			and d.total <> 0
-			GROUP BY t.TenderName ORDER BY TenderName");
-		$tenderR = $dbc->exec_statement($tenderQ,$dates);
-		$report = array();
-		while($tenderW = $dbc->fetch_row($tenderR)){
-			$record = array($tenderW['TenderName'],$tenderW[1],
-					sprintf('%.2f',$tenderW['total']));
-			$report[] = $record;
-		}
-		$data[] = $report;
-
 		$salesQ = $dbc->prepare_statement("SELECT m.super_name,sum(d.quantity) as qty,
 				sum(d.total) as total FROM $dlog AS d LEFT JOIN
 				MasterSuperDepts AS m ON d.department=m.dept_ID
@@ -141,19 +125,18 @@ class DayEndReport extends FannieReportPage
 		}
 		$data[] = $report;
 
-		$discQ = $dbc->prepare_statement("SELECT m.memDesc, SUM(d.total) AS Discount,count(*)
-				FROM $dlog d INNER JOIN
-			       custdata c ON d.card_no = c.CardNo AND c.personNum=1
-				INNER JOIN
-			      memtype m ON c.memType = m.memtype
-				WHERE d.tdate BETWEEN ? AND ?
-			       AND d.upc = 'DISCOUNT'
-				and total <> 0
-				GROUP BY m.memDesc ORDER BY m.memDesc");
-		$discR = $dbc->exec_statement($discQ,$dates);
+		$tenderQ = $dbc->prepare_statement("SELECT 
+			TenderName,count(d.total),sum(d.total) as total
+			FROM $dlog as d , tenders as t 
+			WHERE d.tdate BETWEEN ? AND ?
+			AND d.trans_subtype = t.TenderCode
+			and d.total <> 0
+			GROUP BY t.TenderName ORDER BY TenderName");
+		$tenderR = $dbc->exec_statement($tenderQ,$dates);
 		$report = array();
-		while($discW = $dbc->fetch_row($discR)){
-			$record = array($discW['memDesc'],$discW[2],$discW[1]);
+		while($tenderW = $dbc->fetch_row($tenderR)){
+			$record = array($tenderW['TenderName'],$tenderW[1],
+					sprintf('%.2f',$tenderW['total']));
 			$report[] = $record;
 		}
 		$data[] = $report;
@@ -183,7 +166,7 @@ class DayEndReport extends FannieReportPage
 			$report[] = $record;
 		}
 		$data[] = $report;
-		
+
 		$transQ = $dbc->prepare_statement("select q.trans_num,sum(q.quantity) as items,transaction_type, sum(q.total) from
 			(
 			select trans_num,card_no,quantity,total,
@@ -223,6 +206,23 @@ class DayEndReport extends FannieReportPage
 			$report[] = $info;
 		}
 		$data[] = $report;
+				
+		$discQ = $dbc->prepare_statement("SELECT m.memDesc, SUM(d.total) AS Discount,count(*)
+				FROM $dlog d INNER JOIN
+			       custdata c ON d.card_no = c.CardNo AND c.personNum=1
+				INNER JOIN
+			      memtype m ON c.memType = m.memtype
+				WHERE d.tdate BETWEEN ? AND ?
+			       AND d.upc = 'DISCOUNT'
+				and total <> 0
+				GROUP BY m.memDesc ORDER BY m.memDesc");
+		$discR = $dbc->exec_statement($discQ,$dates);
+		$report = array();
+		while($discW = $dbc->fetch_row($discR)){
+			$record = array($discW['memDesc'],$discW[2],$discW[1]);
+			$report[] = $record;
+		}
+		$data[] = $report;
 
 		$ret = preg_match_all("/[0-9]+/",$FANNIE_EQUITY_DEPARTMENTS,$depts);
 		if ($ret != 0){
@@ -260,23 +260,23 @@ class DayEndReport extends FannieReportPage
 			$this->report_headers = array('Totals', '', 'Amount');
 			break;
 		case 2:
-			$this->report_headers[0] = 'Tenders';
-			break;
-		case 3:
 			$this->report_headers[0] = 'Sales';
 			break;
-		case 4:
-			$this->report_headers[0] = 'Discounts';
+		case 3:
+			$this->report_headers[0] = 'Tenders';
 			break;
-		case 5:
+		case 4:
 			$this->report_headers = array('Instore Coupons','Qty','Amount');
 			break;
-		case 6:
+		case 5:
 			$this->report_headers = array('Store Charges','Qty','Amount');
 			break;
-		case 7:
+		case 6:
 			$this->report_headers = array('Type','Trans','Items','Avg. Items','Amount','Avg. Amount');
 			return array();
+			break;
+		case 7:
+			$this->report_headers[0] = 'Discounts';
 			break;
 		case 8:
 			$this->report_headers = array('Mem#','Equity Type', 'Amount');
