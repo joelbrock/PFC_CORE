@@ -94,19 +94,32 @@ class DayEndReport extends FannieReportPage
 		}
 		$data[] = $report;
 
-		$taxSumQ = $dbc->prepare_statement("SELECT  sum(total) as tax_collected
-			FROM $dlog as d 
-			WHERE d.tdate BETWEEN ? AND ?
-			AND (d.upc = 'tax')
-			GROUP BY d.upc");
-		$taxR = $dbc->exec_statement($taxSumQ,$dates);
+		$icQ = $dbc->prepare_statement("SELECT upc, description, sum(total) as total, COUNT(total) as ct
+			FROM $dlog 
+			WHERE tdate BETWEEN ? AND ?
+			AND (trans_subtype = 'IC')
+			GROUP BY upc");
+		$icR = $dbc->exec_statement($icQ,$dates);
 		$report = array();
-		while($taxW = $dbc->fetch_row($taxR)){
-			$record = array('Sales Tax',null,round($taxW['tax_collected'],2));
+		while($icW = $dbc->fetch_row($icR)){
+			$record = array($icW['description'],number_format($icW['ct'],2),number_format($icW['total'],2));
 			$report[] = $record;
 		}
 		$data[] = $report;
-
+		
+		$miQ = $dbc->prepare_statement("SELECT description, emp_no, sum(total) as total, COUNT(total) as ct
+			FROM $dlog 
+			WHERE tdate BETWEEN ? AND ?
+			AND (trans_subtype = 'MI')
+			GROUP BY tdate");
+		$miR = $dbc->exec_statement($miQ,$dates);
+		$report = array();
+		while($miW = $dbc->fetch_row($miR)){
+			$record = array($miW['emp_no'],number_format($miW['ct'],2),number_format($miW['total'],2));
+			$report[] = $record;
+		}
+		$data[] = $report;
+		
 		$transQ = $dbc->prepare_statement("select q.trans_num,sum(q.quantity) as items,transaction_type, sum(q.total) from
 			(
 			select trans_num,card_no,quantity,total,
@@ -189,13 +202,16 @@ class DayEndReport extends FannieReportPage
 			$this->report_headers[0] = 'Discounts';
 			break;
 		case 4:
-			$this->report_headers[0] = 'Tax';
+			$this->report_headers = array('Instore Coupons','Qty','Amount';
 			break;
 		case 5:
+			$this->report_headers = array('Store Charges','Qty','Amount';
+			break;
+		case 6:
 			$this->report_headers = array('Type','Trans','Items','Avg. Items','Amount','Avg. Amount');
 			return array();
 			break;
-		case 6:
+		case 7:
 			$this->report_headers = array('Mem#','Equity Type', 'Amount');
 			break;
 		}
@@ -212,7 +228,7 @@ class DayEndReport extends FannieReportPage
     {
 		$start = date('Y-m-d',strtotime('yesterday'));
 		?>
-		<form action=index.php method=get>
+		<form action=DayEndReport.php method=get>
 		<table cellspacing=4 cellpadding=4>
 		<tr>
 		<th>Date</th>
