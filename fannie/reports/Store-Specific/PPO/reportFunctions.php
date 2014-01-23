@@ -1,6 +1,6 @@
 <?php
 require_once($FANNIE_ROOT.'config.php');
-include($FANNIE_ROOT.'classlib2.0/FannieAPI.php');
+include_once($FANNIE_ROOT.'classlib2.0/FannieAPI.php');
 
 $staff_discount = 19;
 $volunteer_discount = array(5,10,15);
