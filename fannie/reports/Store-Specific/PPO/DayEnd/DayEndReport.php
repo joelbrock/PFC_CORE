@@ -126,11 +126,10 @@ class DayEndReport extends FannieReportPage
 		$data[] = $report;
 
 		$invTotQ = $dbc->prepare_statement("SELECT m.dept_name,sum(d.quantity) as qty,
-				sum(d.total) as total, ROUND((SUM(d.total)/$gross)*100,2) as pct FROM $dlog AS d LEFT JOIN
-				departments AS m ON d.department=m.dept_no
-				WHERE d.tdate BETWEEN ? AND ?
-				AND d.department <> 0 AND d.trans_type <> 'T'
-				GROUP BY m.dept_name ORDER BY m.dept_name");
+				sum(d.total) as total, ROUND((SUM(d.total)/$gross)*100,2) as pct 
+				FROM $dlog AS d LEFT JOIN departments AS m ON d.department=m.dept_no
+				WHERE d.tdate BETWEEN ? AND ? AND d.department BETWEEN 1 AND 20 AND d.trans_type <> 'T'
+				GROUP BY m.dept_no ORDER BY m.dept_no");
 		$invTotR = $dbc->exec_statement($invTotQ,$dates);
 		$report = array();
 		while($invTotW = $dbc->fetch_row($invTotR)){
@@ -138,6 +137,22 @@ class DayEndReport extends FannieReportPage
 					sprintf('%.2f',$invTotW['qty']),
 					sprintf('%.2f',$invTotW['total']),
 					sprintf('%.2f',$invTotW['pct']));
+			$report[] = $record;
+		}
+		$data[] = $report;
+
+		$ninvTotQ = $dbc->prepare_statement("SELECT m.dept_name,sum(d.quantity) as qty,
+				sum(d.total) as total, ROUND((SUM(d.total)/$gross)*100,2) as pct 
+				FROM $dlog AS d LEFT JOIN departments AS m ON d.department=m.dept_no
+				WHERE d.tdate BETWEEN ? AND ? AND d.department > 20 AND d.trans_type <> 'T'
+				GROUP BY m.dept_no ORDER BY m.dept_no");
+		$ninvTotR = $dbc->exec_statement($ninvTotQ,$dates);
+		$report = array();
+		while($ninvTotW = $dbc->fetch_row($ninvTotR)){
+			$record = array($ninvTotW['dept_name'],
+					sprintf('%.2f',$ninvTotW['qty']),
+					sprintf('%.2f',$ninvTotW['total']),
+					sprintf('%.2f',$ninvTotW['pct']));
 			$report[] = $record;
 		}
 		$data[] = $report;
@@ -280,25 +295,28 @@ class DayEndReport extends FannieReportPage
 			$this->report_headers[0] = 'Sales';
 			break;
 		case 3:
-			$this->report_headers = array('Departments', 'Qty', 'Amount', 'Pct');
+			$this->report_headers = array('Inventory Depts.', 'Qty', 'Amount', 'Pct');
 			break;
 		case 4:
-			$this->report_headers[0] = 'Tenders';
+			$this->report_headers = array('Non-Inventory Dept.', 'Qty', 'Amount', 'Pct');
 			break;
 		case 5:
-			$this->report_headers = array('Instore Coupons','Qty','Amount');
+			$this->report_headers[0] = 'Tenders';
 			break;
 		case 6:
-			$this->report_headers = array('Store Charges','Qty','Amount');
+			$this->report_headers = array('Instore Coupons','Qty','Amount');
 			break;
 		case 7:
+			$this->report_headers = array('Store Charges','Qty','Amount');
+			break;
+		case 8:
 			$this->report_headers = array('Type','Trans','Items','Avg. Items','Amount','Avg. Amount');
 			return array();
 			break;
-		case 8:
+		case 9:
 			$this->report_headers = array('Discounts','Qty','Amount');
 			break;
-		case 9:
+		case 10:
 			$this->report_headers = array('Mem#','Equity Type', 'Amount');
 			break;
 		}
