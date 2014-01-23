@@ -72,9 +72,9 @@ class DayEndReport extends FannieReportPage
 		
 		$totals = array();
 		
-		$totals[] = "Gross Total", number_format($gross,2);
-		$totals[] = "Non-Inventory Total", number_format($hash,2);
-		$totals[] = "Coups + Gift Certs", number_format($coups,2);
+		$totals[] = array("Gross Total", number_format($gross,2));
+		$totals[] = array("Non-Inventory Total", number_format($hash,2));
+		$totals[] = array("Coups + Gift Certs", number_format($coups,2));
  		
 		$data[] = $totals;
 		
@@ -226,25 +226,28 @@ class DayEndReport extends FannieReportPage
     {
 		switch($this->multi_counter){
 		case 1:
-			$this->report_headers[0] = 'Tenders';
+			$this->report_headers = array('','');
 			break;
 		case 2:
-			$this->report_headers[0] = 'Sales';
+			$this->report_headers[0] = 'Tenders';
 			break;
 		case 3:
-			$this->report_headers[0] = 'Discounts';
+			$this->report_headers[0] = 'Sales';
 			break;
 		case 4:
-			$this->report_headers = array('Instore Coupons','Qty','Amount');
+			$this->report_headers[0] = 'Discounts';
 			break;
 		case 5:
-			$this->report_headers = array('Store Charges','Qty','Amount');
+			$this->report_headers = array('Instore Coupons','Qty','Amount');
 			break;
 		case 6:
+			$this->report_headers = array('Store Charges','Qty','Amount');
+			break;
+		case 7:
 			$this->report_headers = array('Type','Trans','Items','Avg. Items','Amount','Avg. Amount');
 			return array();
 			break;
-		case 7:
+		case 8:
 			$this->report_headers = array('Mem#','Equity Type', 'Amount');
 			break;
 		}
