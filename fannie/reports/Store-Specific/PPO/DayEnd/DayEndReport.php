@@ -33,7 +33,7 @@ class DayEndReport extends FannieReportPage
     protected $grandTTL = 1;
     protected $multi_report_mode = True;
     protected $sortable = False;
-	protected $invDept = 20; 				// upper limit of inventory dept numbers
+	// protected $invDept = 20; 				// upper limit of inventory dept numbers
 	
     protected $report_headers = array('Desc','Qty','Amount');
     protected $required_fields = array('date1');
@@ -49,9 +49,9 @@ class DayEndReport extends FannieReportPage
 
 		$grossQ = $dbc->prepare_statement("SELECT ROUND(sum(total),2) as GROSS_sales
 			FROM $dlog WHERE tdate BETWEEN ? AND ?
-			AND department BETWEEN 1 AND ?
+			AND department BETWEEN 1 AND 20
 			AND trans_subtype NOT IN ('IC', 'MC', 'CP')");
-		$grossR = $dbc->exec_statement($grossQ,$dates,$invDept);
+		$grossR = $dbc->exec_statement($grossQ,$dates);
 		$grossW = $dbc->fetch_row($grossR);
 		$gross = ($grossW[0]) ? $grossW[0] : 0;
 
