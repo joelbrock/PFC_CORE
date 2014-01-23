@@ -23,7 +23,7 @@
 
 include('../../../../config.php');
 include($FANNIE_ROOT.'classlib2.0/FannieAPI.php');
-include('../reportFunctions.php');
+// include('../reportFunctions.php');
 
 class DayEndReport extends FannieReportPage 
 {
@@ -56,17 +56,24 @@ class DayEndReport extends FannieReportPage
 		$gross = ($grossW[0]) ? $grossW[0] : 0;
 
 		$hashQ = $dbc->prepare_statement("SELECT ROUND(sum(total),2) AS HASH_sales
-			FROM $dlog WHERE tdate BETWEEEN ? AND ?
+			FROM $dlog WHERE tdate BETWEEN ? AND ?
 			AND department IN (30,31,32,33,34,35,36,38,39,40,41,42,43,44)
 			AND trans_subtype NOT IN ('IC', 'MC', 'CP')");
 		$hashR = $dbc->exec_statement($hashQ,$dates);
 		$hashW = $dbc->fetch_row($hashR);
 		$hash = ($hashW[0]) ? $hash[0] : 0;
+
+		$coupsQ = $dbc->prepare_statement("SELECT ROUND(SUM(total),2) AS instore
+			FROM $dlog WHERE tdate BETWEEN ? AND ?
+			AND trans_subtype IN ('IC', 'CP', 'MC', 'TC')");
+		$coupsR = $dbc->exec_statement($coupsQ,$dates);
+		$coupsW = $dbc->fetch_row($coupsR);
+		$coups = ($coupsW[0]) ? $coups[0] : 0;
 		
-		echo "Gross Total: " . number_format($gross,2) . "<br />";
-		echo "Non-Inventory Total: " . number_format($hash,2) . "<br />";
-
-
+		$data[] = "Gross Total: " . number_format($gross,2) . "<br />";
+		$data[] = "Non-Inventory Total: " . number_format($hash,2) . "<br />";
+		$data[] = "Coups + Gift Certs: " . number_format($coups,2) . "<br />";
+ 		
 		$tenderQ = $dbc->prepare_statement("SELECT 
 			TenderName,count(d.total),sum(d.total) as total
 			FROM $dlog as d , tenders as t 
