@@ -63,6 +63,13 @@ class DayEndReport extends FannieReportPage
 		$hashW = $dbc->fetch_row($hashR);
 		$hash = ($hashW[0]) ? $hashW[0] : 0;
 
+		$discQ = $dbc->prepare_statement("SELECT ROUND(SUM(total),2) AS Discount
+				FROM $dlog WHERE tdate BETWEEN ? AND ?
+			    AND upc = 'DISCOUNT' AND total <> 0");
+		$discR = $dbc->exec_statement($discQ,$dates);
+		$discW = $dbc->fetch_row($discR);
+		$disc = ($discW[0]) ? $discW[0] : 0;
+
 		$coupsQ = $dbc->prepare_statement("SELECT ROUND(SUM(total),2) AS instore
 			FROM $dlog WHERE tdate BETWEEN ? AND ?
 			AND trans_subtype IN ('IC', 'CP', 'MC', 'TC')");
@@ -94,6 +101,7 @@ class DayEndReport extends FannieReportPage
 		$totals = array();
 		$totals[] = array("Gross Total", null, round($gross,2));
 		$totals[] = array("Non-Inventory Total", null, round($hash,2));
+		$totals[] = array("Discounts Total", null, round($disc,2));
 		$totals[] = array("Coups + Gift Certs", null, round($coups,2));
 		$totals[] = array("Store Charge", null, round($charge,2));
 		$totals[] = array("Rcvd/Acct.", null, round($ra,2));
