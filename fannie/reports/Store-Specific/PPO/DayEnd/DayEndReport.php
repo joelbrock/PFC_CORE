@@ -92,12 +92,12 @@ class DayEndReport extends FannieReportPage
 		$mkt = ($mktW[0]) ? $mktW[0] : 0;
 		
 		$totals = array();
-		$totals[] = array("Gross Total", null, number_format($gross,2));
-		$totals[] = array("Non-Inventory Total", null,number_format($hash,2));
-		$totals[] = array("Coups + Gift Certs", null, number_format($coups,2));
-		$totals[] = array("Store Charge", null, number_format($charge,2));
-		$totals[] = array("Rcvd/Acct.", null, number_format($ra,2));
- 		$totals[] = array("Mkt. Tokens Sold", null, number_format($mkt,2));		
+		$totals[] = array("Gross Total", null, round($gross,2));
+		$totals[] = array("Non-Inventory Total", null, round($hash,2));
+		$totals[] = array("Coups + Gift Certs", null, round($coups,2));
+		$totals[] = array("Store Charge", null, round($charge,2));
+		$totals[] = array("Rcvd/Acct.", null, round($ra,2));
+ 		$totals[] = array("Mkt. Tokens Sold", null, round($mkt,2));		
 		
 		$data[] = $totals;
 		
@@ -249,7 +249,7 @@ class DayEndReport extends FannieReportPage
     {
 		switch($this->multi_counter){
 		case 1:
-			$this->report_headers[0] = 'Net Total';
+			$this->report_headers = 'Net Total', null, 'Amount';
 			break;
 		case 2:
 			$this->report_headers[0] = 'Tenders';
