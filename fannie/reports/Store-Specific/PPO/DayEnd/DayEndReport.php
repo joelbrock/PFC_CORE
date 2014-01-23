@@ -202,10 +202,10 @@ class DayEndReport extends FannieReportPage
 			$this->report_headers[0] = 'Discounts';
 			break;
 		case 4:
-			$this->report_headers = array('Instore Coupons','Qty','Amount';
+			$this->report_headers = array('Instore Coupons','Qty','Amount');
 			break;
 		case 5:
-			$this->report_headers = array('Store Charges','Qty','Amount';
+			$this->report_headers = array('Store Charges','Qty','Amount');
 			break;
 		case 6:
 			$this->report_headers = array('Type','Trans','Items','Avg. Items','Amount','Avg. Amount');
