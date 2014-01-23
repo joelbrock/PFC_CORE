@@ -61,21 +61,44 @@ class DayEndReport extends FannieReportPage
 			AND trans_subtype NOT IN ('IC', 'MC', 'CP')");
 		$hashR = $dbc->exec_statement($hashQ,$dates);
 		$hashW = $dbc->fetch_row($hashR);
-		$hash = ($hashW[0]) ? $hash[0] : 0;
+		$hash = ($hashW[0]) ? $hashW[0] : 0;
 
 		$coupsQ = $dbc->prepare_statement("SELECT ROUND(SUM(total),2) AS instore
 			FROM $dlog WHERE tdate BETWEEN ? AND ?
 			AND trans_subtype IN ('IC', 'CP', 'MC', 'TC')");
 		$coupsR = $dbc->exec_statement($coupsQ,$dates);
 		$coupsW = $dbc->fetch_row($coupsR);
-		$coups = ($coupsW[0]) ? $coups[0] : 0;
+		$coups = ($coupsW[0]) ? $coupsW[0] : 0;
+		
+		$chargeQ = $dbc->prepare_statement("SELECT ROUND(SUM(total),2) AS instore
+			FROM $dlog WHERE tdate BETWEEN ? AND ?
+			AND trans_subtype IN ('MI')");
+		$chargeR = $dbc->exec_statement($chargeQ,$dates);
+		$chargeW = $dbc->fetch_row($chargeR);
+		$charge = ($chargeW[0]) ? $chargeW[0] : 0;
+		
+		$raQ = $dbc->prepare_statement("SELECT ROUND(SUM(total),2) AS instore
+			FROM $dlog WHERE tdate BETWEEN ? AND ?
+			AND department IN (45)");
+		$raR = $dbc->exec_statement($raQ,$dates);
+		$raW = $dbc->fetch_row($raR);
+		$ra = ($raW[0]) ? $raW[0] : 0;
+		
+		$mktQ = $dbc->prepare_statement("SELECT ROUND(SUM(total),2) AS instore
+			FROM $dlog WHERE tdate BETWEEN ? AND ?
+			AND department IN (37,47)");
+		$mktR = $dbc->exec_statement($mktQ,$dates);
+		$mktW = $dbc->fetch_row($mktR);
+		$mkt = ($mktW[0]) ? $mktW[0] : 0;
 		
 		$totals = array();
+		$totals[] = array("Gross Total", null, number_format($gross,2));
+		$totals[] = array("Non-Inventory Total", null,number_format($hash,2));
+		$totals[] = array("Coups + Gift Certs", null, number_format($coups,2));
+		$totals[] = array("Store Charge", null, number_format($charge,2));
+		$totals[] = array("Rcvd/Acct.", null, number_format($ra,2));
+ 		$totals[] = array("Mkt. Tokens Sold", null, number_format($mkt,2));		
 		
-		$totals[] = array("Gross Total", number_format($gross,2));
-		$totals[] = array("Non-Inventory Total", number_format($hash,2));
-		$totals[] = array("Coups + Gift Certs", number_format($coups,2));
- 		
 		$data[] = $totals;
 		
 		$tenderQ = $dbc->prepare_statement("SELECT 
@@ -226,7 +249,7 @@ class DayEndReport extends FannieReportPage
     {
 		switch($this->multi_counter){
 		case 1:
-			$this->report_headers = array('','');
+			$this->report_headers[0] = 'Net Total';
 			break;
 		case 2:
 			$this->report_headers[0] = 'Tenders';
