@@ -150,7 +150,7 @@ class DayEndReport extends FannieReportPage
 		$report = array();
 		while($ninvTotW = $dbc->fetch_row($ninvTotR)){
 			$record = array($ninvTotW['dept_name'],
-					sprintf('%.2f',$ninvTotW['qty']),
+					$ninvTotW['qty'],
 					sprintf('%.2f',$ninvTotW['total']),
 					sprintf('%.2f',$ninvTotW['pct']));
 			$report[] = $record;
@@ -181,7 +181,7 @@ class DayEndReport extends FannieReportPage
 		$icR = $dbc->exec_statement($icQ,$dates);
 		$report = array();
 		while($icW = $dbc->fetch_row($icR)){
-			$record = array($icW['description'],number_format($icW['ct'],2),number_format($icW['total'],2));
+			$record = array($icW['description'],$icW['ct'],number_format($icW['total'],2));
 			$report[] = $record;
 		}
 		$data[] = $report;
@@ -194,7 +194,7 @@ class DayEndReport extends FannieReportPage
 		$miR = $dbc->exec_statement($miQ,$dates);
 		$report = array();
 		while($miW = $dbc->fetch_row($miR)){
-			$record = array($miW['emp_no'],number_format($miW['ct'],2),number_format($miW['total'],2));
+			$record = array($miW['emp_no'],$miW['ct'],number_format($miW['total'],2));
 			$report[] = $record;
 		}
 		$data[] = $report;
@@ -331,7 +331,8 @@ class DayEndReport extends FannieReportPage
 
 	function form_content()
     {
-		$start = date('Y-m-d',strtotime('yesterday'));
+		// $start = date('Y-m-d',strtotime('yesterday'));
+		$start = date('Y-m-d');
 		?>
 		<form action=DayEndReport.php method=get>
 		<table cellspacing=4 cellpadding=4>
