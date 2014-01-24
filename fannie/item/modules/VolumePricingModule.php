@@ -45,7 +45,7 @@ class VolumePricingModule extends ItemModule {
 			<th>Mix/Match'.FannieHelp::ToolTip('Items with the same Mix/Match all count').'</th></tr>';
 		$ret .= '<tr><td><select name="vp_method">';
 		foreach($methods as $value => $label){
-			$ret .= sprintf('<option value="%d"%>%s</option>',
+			$ret .= sprintf('<option value="%d"%s>%s</option>',
 					$value, ($value==$model->pricemethod()?' selected':''), $label);
 		}
 		$ret .= '</select></td>';
