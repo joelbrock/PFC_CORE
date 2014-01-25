@@ -36,7 +36,7 @@ $batchID = FormLib::get_form_value('batchID',False);
 $dbc = FannieDB::get($FANNIE_OP_DB);
 
 if ($id !== False){
-	$query = $dbc->prepare_statement("SELECT s.*,p.scale,p.numflag
+	$query = $dbc->prepare_statement("SELECT s.*,p.scale,p.numflag,p.local
 		FROM shelftags AS s
 		INNER JOIN products AS p ON s.upc=p.upc
 		WHERE s.id=? ORDER BY
@@ -55,7 +55,8 @@ if ($id !== False){
 		'upc' => $row['upc'],
 		'vendor' => $row['vendor'],
 		'scale' => $row['scale'],
-		'numflag' => $row['numflag']
+		'numflag' => $row['numflag'],
+		'local' => $row['local']
 		);			
 		$data[] = $myrow;
 	}
@@ -68,7 +69,7 @@ elseif ($batchID !== False){
 		$args[] = $x;
 	}
 	$batchIDList = substr($batchIDList,0,strlen($batchIDList)-1);
-	$testQ = $dbc->prepare_statement("select b.*,p.scale,p.numflag
+	$testQ = $dbc->prepare_statement("select b.*,p.scale,p.numflag,p.local
 		FROM batchBarcodes as b INNER JOIN products AS p
 		ON b.upc=p.upc
 		WHERE batchID in ($batchIDList) and b.description <> ''
@@ -86,7 +87,8 @@ elseif ($batchID !== False){
 		'upc' => $row['upc'],
 		'vendor' => $row['vendor'],
 		'scale' => $row['scale'],
-		'numflag' => $row['numflag']
+		'numflag' => $row['numflag'],
+		'local' => $row['local']
 		);			
 		$data[] = $myrow;
 	}
