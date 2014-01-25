@@ -203,9 +203,9 @@ static public function getsubtotals()
      * values > 1000, so use floating point */
     $CORE_LOCAL->set("amtdue",(double)round($CORE_LOCAL->get("runningTotal") - $CORE_LOCAL->get("transDiscount") + $CORE_LOCAL->get("taxTotal"), 2));
 
-    if ( $CORE_LOCAL->get("fsEligible") > $CORE_LOCAL->get("subtotal") ) {
-        $CORE_LOCAL->set("fsEligible",$CORE_LOCAL->get("subtotal"));
-    }
+    // if ( $CORE_LOCAL->get("fsEligible") > $CORE_LOCAL->get("subtotal") ) {
+    //     $CORE_LOCAL->set("fsEligible",$CORE_LOCAL->get("subtotal"));
+    // }
 }
 
 /**
