@@ -271,7 +271,7 @@ require($FANNIE_ROOT.'src/fpdf/fpdf.php');
 		$pdf->Cell($w/2,4,$brand,0,0,'L');
 		$pdf->SetXY($genLeft,$sizeTop);
 		$pdf->Cell($w/2,4,$size,0,0,'L');
-		$pdf->SetXY($priceLeft+9,$skuTop);
+		$pdf->SetXY($priceLeft-2,$skuTop);
 		$pdf->Cell($w/3,4,$tagdate,0,0,'R');
 		// $pdf->SetFont('Arial','',10);
 		$pdf->SetXY($genLeft,$skuTop);
@@ -300,6 +300,7 @@ require($FANNIE_ROOT.'src/fpdf/fpdf.php');
 		$priceLeft = $priceLeft + $LeftShift;
 		$genLeft = $genLeft + $LeftShift;
 		$vendLeft = $vendLeft + $LeftShift;
+		$propLeft = $propLeft + $LeftShift;
 		$labelCount++;
 	}
 	  
