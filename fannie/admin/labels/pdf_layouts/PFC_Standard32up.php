@@ -161,9 +161,10 @@ require($FANNIE_ROOT.'src/fpdf/fpdf.php');
   function PFC_Standard32up($data,$offset=0){
 	$hspace = 0.79375;
 	$h = 29.36875;
-	$top = 13 + 2.5;
+	$top = 12 + 2.5;
 	$left = 4.85 + 1.25;
 	$space = 1.190625 * 2;
+
   
 	$pdf=new PFC_Standard32up_PDF('P', 'mm', 'Letter');
 	$pdf->SetMargins($left ,$top + $hspace);
@@ -175,7 +176,7 @@ require($FANNIE_ROOT.'src/fpdf/fpdf.php');
 	* set up location variable starts
 	*/
 
-	$barLeft = $left + 4;
+	$barLeft = $left + 1;
 	$descTop = $top + $hspace;
 	$barTop = $descTop + 16;
 	$priceTop = $descTop + 4;
@@ -189,6 +190,8 @@ require($FANNIE_ROOT.'src/fpdf/fpdf.php');
 	$LeftShift = 51.990625;
 	$w = 49.609375;
 	$priceLeft = ($w / 2) + ($space);
+    $propLeft = 42;
+    $propTop = 34;
 	// $priceLeft = 24.85
 	/**
 	   * increment through items in query
@@ -203,7 +206,7 @@ require($FANNIE_ROOT.'src/fpdf/fpdf.php');
 		if($labelCount == 32){
 			$pdf->AddPage('P');
 			$descTop = $top + $hspace;
-			$barLeft = $left + 4;
+			$barLeft = $left + 1;
 			$barTop = $descTop + 16;
 			$priceTop = $descTop + 4;
 			$priceLeft = ($w / 2) + ($space);
@@ -212,7 +215,9 @@ require($FANNIE_ROOT.'src/fpdf/fpdf.php');
 			$sizeTop = $descTop + 8;
 			$genLeft = $left;
 			$skuTop = $descTop + 12;
-		      $vendLeft = $left + 13;
+		    $vendLeft = $left + 13;
+		    $propLeft = 42;
+		    $propTop = 34;
 		}
 	  
 		/** 
@@ -220,7 +225,7 @@ require($FANNIE_ROOT.'src/fpdf/fpdf.php');
 		* if we have reset all left hands back to initial values
 		*/
 		if($barLeft > 175){
-			$barLeft = $left + 4;
+			$barLeft = $left + 1;
 			$barTop = $barTop + $down;
 			$priceLeft = ($w / 2) + ($space);
 			$priceTop = $priceTop + $down;
@@ -230,6 +235,8 @@ require($FANNIE_ROOT.'src/fpdf/fpdf.php');
 			$genLeft = $left;
 			$vendLeft = $left + 13;
 			$skuTop = $skuTop + $down;
+			$propLeft = 42;
+		    $propTop = $propTop + $down;
 		}
 	  
 		/**
@@ -241,9 +248,10 @@ require($FANNIE_ROOT.'src/fpdf/fpdf.php');
 		$desc = strtoupper(substr($row['description'],0,27));
 		$brand = ucwords(strtolower(substr($row['brand'],0,13)));
 		$pak = $row['units'];
-		$size = $row['units'] . "-" . $row['size'];
+		$size = ($pak==0) ? "" : $row['units'] . "-" . $row['size'];
 		$sku = $row['sku'];
 		$upc = substr($row['upc'],1,12);
+		$local = ($row['local']==1)?"l":($row['local']==2)?"n":"m";
 		/** 
 		* determine check digit using barcode.php function
 		*/
@@ -278,6 +286,12 @@ require($FANNIE_ROOT.'src/fpdf/fpdf.php');
 		*/
 		$newUPC = $upc . $check;
 		$pdf->UPC_A($barLeft,$barTop,$upc,7);
+		/**
+		* Local status indicator dots
+		*/
+	    $pdf->SetFont('ZapfDingbats',0,8);
+	    $pdf->SetXY($propLeft,$propTop);
+	    $pdf->Cell(5,5,$local,0,0,'C');
 		/**
 		* increment label parameters for next label
 		*/
