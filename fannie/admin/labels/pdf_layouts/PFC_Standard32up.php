@@ -292,6 +292,7 @@ require($FANNIE_ROOT.'src/fpdf/fpdf.php');
 	    $pdf->SetFont('ZapfDingbats',0,8);
 	    $pdf->SetXY($propLeft,$propTop);
 	    $pdf->Cell(5,5,$local,0,0,'C');
+		$pdf->SetFont('Arial','',10);
 		/**
 		* increment label parameters for next label
 		*/
