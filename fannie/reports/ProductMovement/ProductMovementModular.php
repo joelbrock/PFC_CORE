@@ -73,7 +73,7 @@ class ProductMovementModular extends FannieReportPage
 		$query = "select month(t.tdate),day(t.tdate),year(t.tdate),
 			  t.upc,p.description,
 			  sum(t.quantity) as qty,
-			  sum(t.total) from
+			  FORMAT(sum(t.total),2) from
 			  $dlog as t left join products as p on t.upc = p.upc 
 			  where t.upc = ? AND
 			  tdate BETWEEN ? AND ?
@@ -92,7 +92,7 @@ class ProductMovementModular extends FannieReportPage
 			$query = "select MONTH(datetime),DAY(datetime),YEAR(datetime),
 				upc,'RRR',
 				sum(case when upc <> 'rrr' then quantity when volSpecial is null or volSpecial > 9999 then 0 else volSpecial end) as qty,
-				sum(t.total) from
+				FORMAT(sum(t.total),2) from
 				$dlog as t
 				where upc = ?
 				AND datetime BETWEEN ? AND ?
@@ -107,7 +107,7 @@ class ProductMovementModular extends FannieReportPage
 			$query = "select MONTH(datetime),DAY(datetime),YEAR(datetime),
 				upc,description,
 				sum(CASE WHEN quantity=0 THEN 1 ELSE quantity END) as qty,
-				sum(t.total) from
+				FORMAT(sum(t.total),2) from
 				$dlog as t
 				where upc = ?
 				AND datetime BETWEEN ? AND ?

@@ -47,7 +47,7 @@ Create and send statements of amount due and equity
 Manage specail orders
 </br></br>
 
-<a href="labels"><font size=4>Generate Shelftags</font></a><br>
+<a href="labels"><font size=4>Print Shelftags</font></a><br>
 	Create and print shelftag batches
 </br></br>
 
@@ -63,7 +63,7 @@ Manage specail orders
 <a href="/admin/patronage.php"><font size=4>Patronage Pts. Calculator</font></a></br>
 	View patronage point totals and calculate refunds
 </br></br>
-<a href="shelftags.php"><font size=4>Generate Shelftags</font></a><br>
+<a href="shelftags.php"><font size=4>Print Shelftags</font></a><br>
 	Create and print shelftag batches
 </br>-->
 </body>
