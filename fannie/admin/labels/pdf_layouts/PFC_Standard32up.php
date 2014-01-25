@@ -161,11 +161,11 @@ require($FANNIE_ROOT.'src/fpdf/fpdf.php');
   function PFC_Standard32up($data,$offset=0){
 	$hspace = 0.79375;
 	$h = 29.36875;
-	$top = 12.7 + 2.5;
+	$top = 13 + 2.5;
 	$left = 4.85 + 1.25;
 	$space = 1.190625 * 2;
   
-	$pdf=new Fannie_Standard_PDF('P', 'mm', 'Letter');
+	$pdf=new PFC_Standard32up_PDF('P', 'mm', 'Letter');
 	$pdf->SetMargins($left ,$top + $hspace);
 	$pdf->SetAutoPageBreak('off',0);
 	$pdf->AddPage('P');
