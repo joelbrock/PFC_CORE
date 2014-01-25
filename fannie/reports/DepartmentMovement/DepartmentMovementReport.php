@@ -94,8 +94,8 @@ class DepartmentMovementReport extends FannieReportPage
          * transaction records, as a stop-gap until this is
          * handled more uniformly across the application.
          */
-        $filter_transactions = "t.trans_status NOT IN ('D','X','Z')
-            AND t.emp_no <> 9999
+        $filter_transactions = "t.trans_status NOT IN ('D','X','Z') 
+            AND t.emp_no <> 9999 
             AND t.register_no <> 99";
         $filter_transactions = DTrans::isValid() . ' AND ' . DTrans::isNotTesting();
         
@@ -118,7 +118,7 @@ class DepartmentMovementReport extends FannieReportPage
                 $query = "SELECT t.upc,p.description, 
                       SUM(CASE WHEN trans_status='' THEN 1 WHEN trans_status='V' THEN -1 ELSE 0 END) as rings,"
                       . DTrans::sumQuantity('t')." as qty,
-                      SUM(t.total) AS total,
+                      FORMAT(SUM(t.total),2) AS total,
                       d.dept_no,d.dept_name,s.superID,x.distributor
                       FROM $dlog as t "
                       . DTrans::joinProducts()
@@ -134,7 +134,7 @@ class DepartmentMovementReport extends FannieReportPage
             case 'Department':
                 $query =  "SELECT t.department,d.dept_name,"
                     . DTrans::sumQuantity('t')." as qty,
-                    SUM(total) as Sales 
+                    FORMAT(SUM(total),2) as Sales 
                     FROM $dlog as t "
                     . DTrans::joinDepartments()
                     . "LEFT JOIN $superTable AS s ON s.dept_ID = t.department 
@@ -146,7 +146,7 @@ class DepartmentMovementReport extends FannieReportPage
             case 'Date':
                 $query =  "SELECT year(tdate),month(tdate),day(tdate),"
                     . DTrans::sumQuantity('t')." as qty,
-                    SUM(total) as Sales 
+                    FORMAT(SUM(total),2) as Sales 
                     FROM $dlog as t "
                     . DTrans::joinDepartments()
                     . "LEFT JOIN $superTable AS s ON s.dept_ID = t.department
@@ -168,7 +168,7 @@ class DepartmentMovementReport extends FannieReportPage
                     ELSE 'Err' END";
                 $query =  "SELECT $cols,"
                     . DTrans::sumQuantity('t') . " as qty,
-                    SUM(total) as Sales 
+                    FORMAT(SUM(total),2) as Sales 
                     FROM $dlog as t "
                     . DTrans::joinDepartments()
                     . "LEFT JOIN $superTable AS s ON s.dept_ID = t.department 
@@ -192,7 +192,7 @@ class DepartmentMovementReport extends FannieReportPage
             $record = array();
             if ($groupby == "Date") {
                 $record[] = $row[1]."/".$row[2]."/".$row[0];
-                $record[] = number_format($row[3],2);
+                $record[] = round($row[3],2);
                 $record[] = number_format($row[4],2);
             } else {
                 for($i=0;$i<$dbc->num_fields($result);$i++) {
@@ -238,7 +238,7 @@ class DepartmentMovementReport extends FannieReportPage
                     $sumSales += $row[4];
                 }
 
-                return array('Total',null,$sumRings,$sumQty,$sumSales,'',null,null,null);
+                return array('Total',null,$sumRings,number_format($sumQty,2),round($sumSales,2),'',null,null,null);
                 break;
             case 4:
                 /**
@@ -261,7 +261,7 @@ class DepartmentMovementReport extends FannieReportPage
                     $sumSales += $row[3];
                 }
 
-                return array('Total',null,$sumQty,$sumSales);
+                return array('Total',null,round($sumQty,2),$sumSales);
                 break;
             case 3:
                 $this->report_headers = array('Date','Qty','$');
@@ -272,7 +272,7 @@ class DepartmentMovementReport extends FannieReportPage
                     $sumSales += $row[2];
                 }
                 
-                return array('Total',$sumQty,$sumSales);
+                return array('Total',round($sumQty,2),round($sumSales,2));
                 break;
         }
     }
