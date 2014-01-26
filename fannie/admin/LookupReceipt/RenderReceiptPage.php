@@ -116,7 +116,7 @@ class RenderReceiptPage extends FanniePage {
 			FROM $table 
 			WHERE datetime BETWEEN ? AND ? 
 			AND register_no=? AND emp_no=? and trans_no=?
-			AND voided <> 5 and UPC <> 'TAX' and UPC <> 'DISCOUNT'
+			AND voided <> 5 and UPC <> 'TAX' and UPC <> 'DISCOUNT' AND trans_type <> 'L'
 			ORDER BY trans_id";
 		$args = array("$year-$month-$day 00:00:00", "$year-$month-$day 23:59:59", 
 				$reg_no, $emp_no, $trans_no);
@@ -163,6 +163,12 @@ class RenderReceiptPage extends FanniePage {
 				$receiptHeader .= ("<tr><td align=center colspan=4>" . "W H O L E &nbsp; F O O D S &nbsp; C O - O P" . "</td></tr>\n");
 				$receiptHeader .= ("<tr><td align=center colspan=4>" . "218-728-0884" . "</td></tr>\n");
 				$receiptHeader .= ("<tr><td align=center colspan=4>" . "MEMBER OWNED SINCE 1970" . "</td></tr>\n");
+				break;
+
+			case "PFC_Portland":
+				$receiptHeader .= ("<tr><td align=center colspan=4>" . "P E O P L E S &nbsp; F O O D &nbsp; C O - O P" . "</td></tr>\n");
+				$receiptHeader .= ("<tr><td align=center colspan=4>" . "3029 SE 21st Avenue - 503-ORGANIC" . "</td></tr>\n");
+				$receiptHeader .= ("<tr><td align=center colspan=4>" . "" . "</td></tr>\n");
 				break;
 
 			default:
