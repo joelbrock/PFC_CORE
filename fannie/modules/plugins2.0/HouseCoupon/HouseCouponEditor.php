@@ -169,7 +169,7 @@ class HouseCouponEditor extends FanniePage
 		$r = $dbc->exec_statement($q);
 		while($w = $dbc->fetch_row($r)){
 			$ret .= sprintf('<tr><td>#%d <a href="HouseCouponEditor.php?edit_id=%d">Edit</a></td>
-					<td>%d</td><td>%.2f%s</td><td>%s</td></tr>',
+					<td>%s</td><td>%.2f%s</td><td>%s</td></tr>',
 					$w['coupID'],$w['coupID'],$w['description'],
 					$w['discountValue'],$w['discountType'],$w['endDate']);
 		}
@@ -215,7 +215,7 @@ class HouseCouponEditor extends FanniePage
 		$ret .= sprintf('<table cellspacing=0 cellpadding=4><tr>
 			<th>Coupon ID#</th><td>%s</td><th>UPC</th>
 			<td>%s</td></tr><tr><tr><th>Label</th><td colspan=2>
-			<input type=text name=description value="%d" size=50 /></td></tr>
+			<input type=text name=description value="%s" size=50 /></td></tr>
 			<th>Expires</th><td><input type=text name=expires value="%s" size=12 
 			onclick="showCalendarControl(this);" />
 			</td><th>Limit</th><td><input type=text name=limit size=3
