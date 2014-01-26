@@ -34,6 +34,25 @@ class ReprintReceiptPage extends FanniePage
 
 	private $results = '';
 
+	function javascript_content()
+	{
+		ob_start();
+		?>
+		function popup(mylink, windowname)
+		{
+		if (! window.focus)return true;
+		var href;
+		if (typeof(mylink) == "string")
+		   href=mylink;
+		else
+		   href=mylink.href;
+		window.open(href, windowname, "width=400,height=600,scrollbars=yes,menubar=no,location=no,toolbar=no,dependent=yes");
+		return false;
+		}
+		<?php
+		return ob_get_clean();
+	}
+
 	function preprocess()
     {
 		global $FANNIE_OP_DB, $FANNIE_TRANS_DB;
@@ -144,7 +163,7 @@ class ReprintReceiptPage extends FanniePage
 					$month = $row[1];
 					$day = $row[2];
 					$trans_num = $row[3].'-'.$row[4].'-'.$row[5];
-					$this->results .= "<a href=RenderReceiptPage.php?year=$year&month=$month&day=$day&receipt=$trans_num>";
+					$this->results .= '<a href=RenderReceiptPage.php?year=$year&month=$month&day=$day&receipt=$trans_num  onClick="return popup(this, \'trans_receipt\')";>';
 					$this->results .= "$year-$month-$day $trans_num</a><br />";
 				}
 			}
