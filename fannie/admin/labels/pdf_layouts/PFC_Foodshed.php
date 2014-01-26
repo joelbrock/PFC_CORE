@@ -183,6 +183,7 @@ require($FANNIE_ROOT.'src/fpdf/fpdf.php');
     $labelCount = 0;
     $genLeft = $left;
     $skuTop = $descTop + 8;
+    $vendLeft = $left + 13;
     $down = 30.95625;
     $LeftShift = 53;
     $w = 49.609375;
@@ -209,6 +210,7 @@ require($FANNIE_ROOT.'src/fpdf/fpdf.php');
 		  $priceLeft = $left;
 	      $labelCount = 0;
 	      $genLeft = $left;
+		  $vendLeft = $left + 13;
 	      $skuTop = $descTop + 8;
 		  $propLeft = 42;
 		  $propTop = 34;
@@ -225,6 +227,7 @@ require($FANNIE_ROOT.'src/fpdf/fpdf.php');
 	        $priceTop = $priceTop + $down;
 	        $descTop = $descTop + $down;
 	        $genLeft = $left;
+		    $vendLeft = $left + 13;
 			$propLeft = 42;
 		    $propTop = $propTop + $down;
 		}
@@ -275,7 +278,7 @@ require($FANNIE_ROOT.'src/fpdf/fpdf.php');
 	      $priceLeft = $priceLeft + $LeftShift;
 	      $genLeft = $genLeft + $LeftShift;
 	      $vendLeft = $vendLeft + $LeftShift;
-	  	$propLeft = $propLeft + $LeftShift;
+		  $propLeft = $propLeft + $LeftShift;
 	      $labelCount++;
 	}
 	  
