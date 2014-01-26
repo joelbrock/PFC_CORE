@@ -143,7 +143,7 @@ require($FANNIE_ROOT.'src/fpdf/fpdf.php');
 	  if (isset($_GET['narrow']))
 		  $this->Text($x,$y+$h+11/$this->k,substr($barcode,-$len));
 	  else
-		  $this->Text($x+6,$y+$h+11/$this->k,substr($barcode,-$len));
+		  $this->Text($x,$y+$h+11/$this->k,substr($barcode,-$len));
 
     }
   
@@ -161,7 +161,7 @@ require($FANNIE_ROOT.'src/fpdf/fpdf.php');
   function PFC_Foodshed($data,$offset=0){
 	  $hspace = 0.79375;
 	  $h = 29.36875;
-	  $top = 18;
+	  $top = 16;
 	  $left = 4.5;
 	  $space = 1.190625 * 2;
 
@@ -179,7 +179,7 @@ require($FANNIE_ROOT.'src/fpdf/fpdf.php');
     $barLeft = $left + 1;
     $descTop = $top + $hspace;
     $barTop = $descTop + 4;
-    $priceTop = $descTop + 14;
+    $priceTop = $descTop + 15;
     $labelCount = 0;
     $genLeft = $left;
     $skuTop = $descTop + 8;
