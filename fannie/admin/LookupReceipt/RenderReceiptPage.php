@@ -10,7 +10,7 @@ class RenderReceiptPage extends FanniePage {
 		return '
 			body {
 				font-family: Arial,sans-serif;
-				font-size: 0.8em;
+				font-size: 0.75em;
 			}';
 	}
 
@@ -191,7 +191,7 @@ class RenderReceiptPage extends FanniePage {
 			$ret .= "<td align=right>";
 			$ret .= $row["comment"];
 			$ret .= "</td><td align=right>";
-			$ret .= $row["total"];
+			$ret .= ($row["total"]==0)?'&nbsp;':money_format('%n',$row["total"]);
 			$ret .= "</td><td align=right>";
 			$ret .= $row["Status"];
 			$ret .= "</td></tr>";	

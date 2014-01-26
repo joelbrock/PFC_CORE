@@ -157,7 +157,15 @@ class ReprintReceiptPage extends FanniePage
 				header("Location: RenderReceiptPage.php?year=$year&month=$month&day=$day&receipt=$trans_num");
 				return false;
 			} else {
-				$this->results = "<b>Matching receipts</b>:<br />";
+				ob_start();
+				?><fieldset style="border:330066; float:right;"><legend>Other Receipts</legend>
+				<form action=RenderReceiptPage.php method=post>
+				Date: <input type=text name=date><br>
+				Receipt Num: <input type=text name=receipt><br>
+				<input type=submit name=submit></form></fieldset>
+				<?php
+				$this->results = ob_get_clean();
+				$this->results .= "<b>Matching receipts</b>:<br />";
 				while ($row = $dbc->fetch_row($result)) {
 					$year = $row[0];
 					$month = $row[1];
@@ -166,14 +174,6 @@ class ReprintReceiptPage extends FanniePage
 					$this->results .= "<a href=RenderReceiptPage.php?year=$year&month=$month&day=$day&receipt=$trans_num  onClick='return popup(this, \"trans_receipt\")';>";
 					$this->results .= "$year-$month-$day $trans_num</a><br />";
 				}
-				ob_start();
-				?><fieldset style="border:330066; float:right;"><legend>Other Receipts</legend>
-				<form action=RenderReceiptPage.php method=post>
-				Date: <input type=text name=date><br>
-				Receipt Num: <input type=text name=receipt><br>
-				<input type=submit name=submit></form></fieldset>
-				<?php
-				$this->results .= ob_get_clean();
 			}
 		}
 
