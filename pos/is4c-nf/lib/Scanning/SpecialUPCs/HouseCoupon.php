@@ -88,7 +88,7 @@ class HouseCoupon extends SpecialUPC
         $db = Database::pDataConnect();
         $hctable = $db->table_definition('houseCoupons');
         $infoQ = "select endDate," . $db->identifier_escape('limit') .
-            ",discountType, department,
+            ",discountType, department,description,
             discountValue, minType, minValue, memberOnly, 
             case when endDate is NULL then 0 else 
             ". $db->datediff('endDate', $db->now()) . " end as expired
@@ -470,8 +470,9 @@ class HouseCoupon extends SpecialUPC
 
                 // still need to add a line-item with the coupon UPC to the
                 // transaction to track usage
-                $value = 0;
-                $description = $ttlPD . ' % Discount Coupon';
+                $value = $ttlPD * 0.000000000000000000000001;
+                //$description = $ttlPD . ' % Discount Coupon';
+                $description = $infoW['description'];
                 break;
         }
 
