@@ -116,9 +116,10 @@ class DepartmentMovementReport extends FannieReportPage
         switch($groupby) {
             case 'PLU':
                 $query = "SELECT t.upc,p.description, 
-                      SUM(CASE WHEN trans_status='' THEN 1 WHEN trans_status='V' THEN -1 ELSE 0 END) as rings,"
-                      . DTrans::sumQuantity('t')." as qty,
-                      FORMAT(SUM(t.total),2) AS total,
+                      SUM(CASE WHEN t.trans_status='' THEN 1 WHEN t.trans_status='V' THEN -1 ELSE 0 END) as rings,
+					  ROUND(SUM(CASE WHEN t.trans_status='M' THEN 0 
+					  	WHEN t.unitPrice=0.01 THEN 1 ELSE t.quantity END),2) as qty,
+                      ROUND(SUM(t.total),2) AS total,
                       d.dept_no,d.dept_name,s.superID,x.distributor
                       FROM $dlog as t "
                       . DTrans::joinProducts()
@@ -132,9 +133,10 @@ class DepartmentMovementReport extends FannieReportPage
                       d.dept_no,d.dept_name,s.superID,x.distributor ORDER BY SUM(t.total) DESC";
                 break;
             case 'Department':
-                $query =  "SELECT t.department,d.dept_name,"
-                    . DTrans::sumQuantity('t')." as qty,
-                    FORMAT(SUM(total),2) as Sales 
+                $query =  "SELECT t.department,d.dept_name,
+				    ROUND(SUM(CASE WHEN t.trans_status='M' THEN 0 
+				    	WHEN t.unitPrice=0.01 THEN 1 ELSE t.quantity END),2) as qty,
+                    ROUND(SUM(total),2) as Sales 
                     FROM $dlog as t "
                     . DTrans::joinDepartments()
                     . "LEFT JOIN $superTable AS s ON s.dept_ID = t.department 
@@ -144,9 +146,10 @@ class DepartmentMovementReport extends FannieReportPage
                     GROUP BY t.department,d.dept_name ORDER BY SUM(total) DESC";
                 break;
             case 'Date':
-                $query =  "SELECT year(tdate),month(tdate),day(tdate),"
-                    . DTrans::sumQuantity('t')." as qty,
-                    FORMAT(SUM(total),2) as Sales 
+                $query =  "SELECT year(tdate),month(tdate),day(tdate),
+					ROUND(SUM(CASE WHEN t.trans_status='M' THEN 0 
+				  	  WHEN t.unitPrice=0.01 THEN 1 ELSE t.quantity END),2) as qty,
+                    ROUND(SUM(total),2) as Sales 
                     FROM $dlog as t "
                     . DTrans::joinDepartments()
                     . "LEFT JOIN $superTable AS s ON s.dept_ID = t.department
@@ -166,9 +169,10 @@ class DepartmentMovementReport extends FannieReportPage
                     WHEN ".$dbc->dayofweek("tdate")."=6 THEN 'Fri'
                     WHEN ".$dbc->dayofweek("tdate")."=7 THEN 'Sat'
                     ELSE 'Err' END";
-                $query =  "SELECT $cols,"
-                    . DTrans::sumQuantity('t') . " as qty,
-                    FORMAT(SUM(total),2) as Sales 
+                $query =  "SELECT $cols,
+				    ROUND(SUM(CASE WHEN t.trans_status='M' THEN 0 
+				  	  WHEN t.unitPrice=0.01 THEN 1 ELSE t.quantity END),2) as qty,
+                    ROUND(SUM(total),2) as Sales 
                     FROM $dlog as t "
                     . DTrans::joinDepartments()
                     . "LEFT JOIN $superTable AS s ON s.dept_ID = t.department 
