@@ -163,7 +163,7 @@ class ReprintReceiptPage extends FanniePage
 					$month = $row[1];
 					$day = $row[2];
 					$trans_num = $row[3].'-'.$row[4].'-'.$row[5];
-					$this->results .= '<a href=RenderReceiptPage.php?year=$year&month=$month&day=$day&receipt=$trans_num  onClick="return popup(this, \'trans_receipt\')";>';
+					$this->results .= "<a href=RenderReceiptPage.php?year=$year&month=$month&day=$day&receipt=$trans_num  onClick='return popup(this, \"trans_receipt\")';>";
 					$this->results .= "$year-$month-$day $trans_num</a><br />";
 				}
 			}
