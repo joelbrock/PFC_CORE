@@ -125,9 +125,10 @@ class RenderReceiptPage extends FanniePage {
 	}
 
 	function receipt_to_table($query,$args,$border,$bgcolor){
-		global $FANNIE_TRANS_DB, $FANNIE_COOP_ID;
+		global $FANNIE_TRANS_DB,$FANNIE_OP_DB, $FANNIE_COOP_ID;
 
 		$dbc = FannieDB::get($FANNIE_TRANS_DB);
+		$dba = FannieDB::get($FANNIE_OP_DB);
 		$prep = $dbc->prepare_statement($query); 
 		$results = $dbc->exec_statement($prep,$args);
 		$number_cols = $dbc->num_fields($results);
@@ -166,30 +167,24 @@ class RenderReceiptPage extends FanniePage {
 				$receiptHeader .= ("<tr><td align=center colspan=4>" . "MEMBER OWNED SINCE 1970" . "</td></tr>\n");
 				break;
 
-			case "PFC_Portland":
-				$receiptHeader .= ("<tr><td align=center colspan=4>" . "P E O P L E S &nbsp; F O O D &nbsp; C O - O P" . "</td></tr>\n");
-				$receiptHeader .= ("<tr><td align=center colspan=4>" . "3029 SE 21st Avenue - 503-ORGANIC" . "</td></tr>\n");
-				$receiptHeader .= ("<tr><td align=center colspan=4>" . "" . "</td></tr>\n");
-				break;
-
-			// default:				
-// 				$receiptHeader .= ("<tr><td align=center colspan=4>" . "FANNIE_COOP_ID >{$FANNIE_COOP_ID}<" . "</td></tr>\n");
-
+			 default:				
+	                        $q = $dba->prepare_statement("SELECT type,text FROM customReceipt
+	                                WHERE type LIKE '%eader%' ORDER BY seq");
+	                        $r = $dba->exec_statement($q);
+	                        while($w = $dba->fetch_row($r)){
+       		                        //$msg = (substr($w['text'],-3)=='bmp')?'':$w['text'];
+					if (substr($w['text'],-4)=='.bmp') 
+						$msg = "<img src='../../../pos/is4c-nf/graphics/" . $w['text'] . "' width=300 />";
+					else 
+                	                	$msg = $w['text'];	
+					$receiptHeader .= ("<tr><td align=center colspan=4>$msg</td></tr>\n");
+                       		 }
 			}
-		} else {
-			$q = $dbc->prepare_statement("SELECT type,text FROM customReceipt 
-				WHERE type LIKE '%header%' ORDER BY seq");
-			$r = $dbc->exec_statement($q);
-			while($w = $dbc->fetch_row($r)){
-				$msg = (substr($w['text'],-3)=='bmp')?'':$w['text'];
-				$receiptHeader .= ("<tr><td align=center colspan=4>$msg</td></tr>\n");
-			}
-		}
-
+		} 
 		$ret = "<table border = $border bgcolor=$bgcolor>\n";
 		$ret .= "{$receiptHeader}\n";
 		$ret .= "<tr><td align=center colspan=4>{$row2['datetime']} &nbsp; &nbsp; $trans_num</td></tr>";
-		$ret .= "<tr><td align=center colspan=4>Cashier:&nbsp;$emp_no</td></tr>";
+//		$ret .= "<tr><td align=center colspan=4>Cashier:&nbsp;$emp_no</td></tr>";
 		$ret .= "<tr><td colspan=4>&nbsp;</td></tr>";
 		$ret .= "<tr align left>\n";
 		foreach($rows as $row){
