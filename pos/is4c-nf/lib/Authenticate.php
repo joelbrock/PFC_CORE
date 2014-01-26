@@ -61,7 +61,7 @@ static public function checkPassword($password,$activity=1)
 	$password = $db_g->escape($password);
 
 	if ($row_g["LoggedIn"] == 0) {
-		$query_q = "select emp_no, FirstName, LastName, "
+		$query_q = "select emp_no, FirstName, LastName, frontendsecurity, "
 			.$db_g->yeardiff($db_g->now(),'birthdate')." as age "
 			."from employees where EmpActive = 1 "
 			."and CashierPassword = '".$password."'";
@@ -81,6 +81,8 @@ static public function checkPassword($password,$activity=1)
 				"LoggedIn" => 1
 			);
 			Database::setglobalvalues($globals);
+
+			$CORE_LOCAL->set("SecuritySR", $row_q['frontendsecurity']);
 
 			CoreState::cashierLogin($transno, $row_q['age']);
 
