@@ -165,15 +165,15 @@ class ReprintReceiptPage extends FanniePage
 					$trans_num = $row[3].'-'.$row[4].'-'.$row[5];
 					$this->results .= "<a href=RenderReceiptPage.php?year=$year&month=$month&day=$day&receipt=$trans_num  onClick='return popup(this, \"trans_receipt\")';>";
 					$this->results .= "$year-$month-$day $trans_num</a><br />";
-					ob_start();
-					?><fieldset style="border:#330066; float:right;"><legend>Other Receipts</legend>
-					<form action=RenderReceiptPage.php method=post>
-					Date: <input type=text name=date><br>
-					Receipt Num: <input type=text name=receipt><br>
-					<input type=submit name=submit></form></fieldset>
-					<?php
-					$this->results .= ob_get_clean();
 				}
+				ob_start();
+				?><fieldset style="border:330066; float:right;"><legend>Other Receipts</legend>
+				<form action=RenderReceiptPage.php method=post>
+				Date: <input type=text name=date><br>
+				Receipt Num: <input type=text name=receipt><br>
+				<input type=submit name=submit></form></fieldset>
+				<?php
+				$this->results .= ob_get_clean();
 			}
 		}
 
