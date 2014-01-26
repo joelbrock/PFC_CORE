@@ -453,7 +453,7 @@ static public function addhousecoupon($strupc, $intdepartment, $dbltotal, $descr
 	global $CORE_LOCAL;
     if (empty($description)) {
         $sql = Database::pDataConnect();
-        $fetchQ = "select card_no, coupID, description from houseVirtualCoupons WHERE card_no=" . $CORE_LOCAL->get('memberID');
+        $fetchQ = "select description from houseCoupons WHERE coupID=" . substr($strupc,-1);
         $fetchR = $sql->query($fetchQ);
         $coupW = $sql->fetch_row($fetchR);
         $description = ($coupW) ? substr($coupW["description"],0,35) : " * Store Coupon";
