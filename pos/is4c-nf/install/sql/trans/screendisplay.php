@@ -83,7 +83,7 @@ $CREATE['trans.screendisplay'] = "
 		CASE
 		WHEN (voided = 3 or voided = 5 or voided = 7 or voided = 11 or voided = 17)
 			THEN unitPrice
-		WHEN (trans_status = 'D')
+		WHEN (trans_status = 'D' or (trans_status = 'C' and total = 0))
 			THEN ''
 		ELSE
 			total
@@ -95,7 +95,7 @@ $CREATE['trans.screendisplay'] = "
 		WHEN (trans_status = 'R')
 			THEN 'RF'
 		WHEN (trans_status = 'C')
-			THEN 'MC'
+			THEN CASE WHEN (trans_type = 'I') THEN 'IC' ELSE 'MC' END
 		WHEN (tax = 1 and foodstamp <> 0)
 			THEN 'TF'
 		WHEN (tax = 1 and foodstamp = 0)
