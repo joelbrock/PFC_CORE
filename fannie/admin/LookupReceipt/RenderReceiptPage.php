@@ -6,15 +6,16 @@ class RenderReceiptPage extends FanniePage {
 
 	protected $window_dressing = False;
 
+	function css_content(){
+		return '
+			body {
+				font-family: Arial,sans-serif;
+				font-size: 0.9em;
+			}';
+	}
+
 	function body_content(){
-		ob_start();
-		?>
-		<form action=RenderReceiptPage.php method=post>
-		Date: <input type=text name=date><br>
-		Receipt Num: <input type=text name=receipt><br>
-		<input type=submit name=submit>
-		<?php
-		$ret = ob_get_clean();
+
 		$transNum = FormLib::get_form_value('receipt');
 		$month = FormLib::get_form_value('month');
 		$day = FormLib::get_form_value('day');
