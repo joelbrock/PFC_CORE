@@ -1,238 +1,297 @@
 <?php
-/*
-	Using layouts
-	1. Make a file, e.g. New_Layout.php
-	2. Make a PDF class New_Layout_PDF extending FPDF
-	   (just copy an existing one to get the UPC/EAN/Barcode
-	    functions)
-	3. Make a function New_Layout($data)
-	   Data is an array database rows containing:
-		normal_price
-		description
-		brand
-		units
-		size
-		sku
-		pricePerUnit
-		upc
-		vendor
-		scale
-	4. In your function, build the PDF. Look at 
-	   existings ones for some hints and/or FPDF
-	   documentation
+/*******************************************************************************
 
-	Name matching is important
-*/
+    Copyright 2009 Whole Foods Co-op
 
-define('FPDF_FONTPATH','font/');
-   require($FANNIE_ROOT.'src/fpdf/fpdf.php');
+    This file is part of Fannie.
 
-/****Credit for the majority of what is below for barcode generation
- has to go to Olivier for posting the script on the FPDF.org scripts
- webpage.****/
+    Fannie is free software; you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation; either version 2 of the License, or
+    (at your option) any later version.
 
-class PFC_Foodshed_PDF extends FPDF
-{
-   var $tagdate;
-   function setTagDate($str){
-	$this->tagdate = $str;
-   }
+    Fannie is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    in the file license.txt along with IT CORE; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+
+*********************************************************************************/
+
+  /**
+   * fpdf is the pdf creation class doc
+   * manual and tutorial can be found in fpdf dir
+   */
+require($FANNIE_ROOT.'src/fpdf/fpdf.php');
   
-   function EAN13($x,$y,$barcode,$h=16,$w=.35)
-   {
-  	  $this->Barcode($x,$y,$barcode,$h,$w,13);
-   }
-
-   function UPC_A($x,$y,$barcode,$h=16,$w=.35)
-   {
-	  $this->Barcode($x,$y,$barcode,$h,$w,12);
+  /**-------------------------------------------------------- 
+   *            begin  barcode creation class from 
+   *--------------------------------------------------------*/
+  
+  /*******************************************************************************
+  * Software: barcode                                                            *
+  * Author:   Olivier PLATHEY                                                    *
+  * License:  Freeware                                                           *
+  * URL: www.fpdf.org                                                            *
+  * You may use, modify and redistribute this software as you wish.              *
+  *******************************************************************************/
+  define('FPDF_FONTPATH','font/');
+  
+  class PFC_Standard32up_PDF extends FPDF
+  {
+    function EAN13($x,$y,$barcode,$h=16,$w=.35)
+    {
+          $this->Barcode($x,$y,$barcode,$h,$w,12);
     }
-
+  
+    function UPC_A($x,$y,$barcode,$h=16,$w=.35)
+    {
+          $this->Barcode($x,$y,$barcode,$h,$w,12);
+    }
+  
     function GetCheckDigit($barcode)
-   {
- 	  //Compute the check digit
-	  $sum=0;
-	  for($i=1;$i<=11;$i+=2)
-		$sum+=3*(isset($barcode[$i])?$barcode[$i]:0);
-	  for($i=0;$i<=10;$i+=2)
-		$sum+=(isset($barcode[$i])?$barcode[$i]:0);
-	  $r=$sum%10;
-	  if($r>0)
-		$r=10-$r;
-	  return $r;
-   }
-
-   function TestCheckDigit($barcode)
-   {
-	  //Test validity of check digit
-	  $sum=0;
-	  for($i=1;$i<=11;$i+=2)
-		$sum+=3*$barcode{$i};
-	  for($i=0;$i<=10;$i+=2)
-		$sum+=$barcode{$i};
-	  return ($sum+$barcode{12})%10==0;
-   }
-
-   function Barcode($x,$y,$barcode,$h,$w,$len)
-   {
-	  //Padding
-	  $barcode=str_pad($barcode,$len-1,'0',STR_PAD_LEFT);
-	  if($len==12)
-		$barcode='0'.$barcode;
-	  //Add or control the check digit
-	  if(strlen($barcode)==12)
-		$barcode.=$this->GetCheckDigit($barcode);
-	  elseif(!$this->TestCheckDigit($barcode)){
-		$this->Error('This is an Incorrect check digit' . $barcode);
-		//echo $x.$y.$barcode."\n";
-	  }
-	  //Convert digits to bars
-	  $codes=array(
-		'A'=>array(
-			'0'=>'0001101','1'=>'0011001','2'=>'0010011','3'=>'0111101','4'=>'0100011',
-			'5'=>'0110001','6'=>'0101111','7'=>'0111011','8'=>'0110111','9'=>'0001011'),
-		'B'=>array(
-			'0'=>'0100111','1'=>'0110011','2'=>'0011011','3'=>'0100001','4'=>'0011101',
-			'5'=>'0111001','6'=>'0000101','7'=>'0010001','8'=>'0001001','9'=>'0010111'),
-		'C'=>array(
-			'0'=>'1110010','1'=>'1100110','2'=>'1101100','3'=>'1000010','4'=>'1011100',
-			'5'=>'1001110','6'=>'1010000','7'=>'1000100','8'=>'1001000','9'=>'1110100')
-		);
-	  $parities=array(
-		'0'=>array('A','A','A','A','A','A'),
-		'1'=>array('A','A','B','A','B','B'),
-		'2'=>array('A','A','B','B','A','B'),
-		'3'=>array('A','A','B','B','B','A'),
-		'4'=>array('A','B','A','A','B','B'),
-		'5'=>array('A','B','B','A','A','B'),
-		'6'=>array('A','B','B','B','A','A'),
-		'7'=>array('A','B','A','B','A','B'),
-		'8'=>array('A','B','A','B','B','A'),
-		'9'=>array('A','B','B','A','B','A')
-		);
-	  $code='101';
-	  $p=$parities[$barcode{0}];
-	  for($i=1;$i<=6;$i++)
-		$code.=$codes[$p[$i-1]][$barcode{$i}];
-	  $code.='01010';
-	  for($i=7;$i<=12;$i++)
-		$code.=$codes['C'][$barcode{$i}];
-	  $code.='101';
-	  //Draw bars
-	  for($i=0;$i<strlen($code);$i++)
-	  {
-		if($code{$i}=='1')
-			$this->Rect($x+$i*$w,$y,$w,$h,'F');
-	  }
-	  //Print text under barcode
-	  $this->SetFont('Arial','',8);
-	  $this->Text($x,$y-$h+(17/$this->k),substr($barcode,-$len).' '.$this->tagdate);
+    {
+          //Compute the check digit
+          $sum=0;
+          for($i=1;$i<=11;$i+=2)
+                  $sum+=3*$barcode{$i};
+          for($i=0;$i<=10;$i+=2)
+                  $sum+=$barcode{$i};
+          $r=$sum%10;
+          if($r>0)
+                  $r=10-$r;
+          return $r;
     }
-}
+  
+    function TestCheckDigit($barcode)
+    {
+          //Test validity of check digit
+          $sum=0;
+          for($i=1;$i<=11;$i+=2)
+                  $sum+=3*$barcode{$i};
+          for($i=0;$i<=10;$i+=2)
+                  $sum+=$barcode{$i};
+          return ($sum+$barcode{12})%10==0;
+    }
+  
+    function Barcode($x,$y,$barcode,$h,$w,$len)
+    {
+      GLOBAL $genLeft;
+      GLOBAL $descTop;
+          //Padding
+          //$barcode=str_pad($barcode,$len-1,'0',STR_PAD_LEFT);
+      //$barcode = $barcode . $check;
+          /*if($len==12)
+                  $barcode='0'.$barcode;
+      */
+          //Add or control the check digit
+          if(strlen($barcode)==12)
+                  $barcode.=$this->GetCheckDigit($barcode);
+          elseif(!$this->TestCheckDigit($barcode))
+      {
+                  $this->Error('This is an Incorrect check digit' . $barcode);
+                  //echo $x.$y.$barcode."\n";
+          }
+          //Convert digits to bars
+          $codes=array(
+                  'A'=>array(
+                          '0'=>'0001101','1'=>'0011001','2'=>'0010011','3'=>'0111101','4'=>'0100011',
+                          '5'=>'0110001','6'=>'0101111','7'=>'0111011','8'=>'0110111','9'=>'0001011'),
+                  'B'=>array(
+                          '0'=>'0100111','1'=>'0110011','2'=>'0011011','3'=>'0100001','4'=>'0011101',
+                          '5'=>'0111001','6'=>'0000101','7'=>'0010001','8'=>'0001001','9'=>'0010111'),
+                  'C'=>array(
+                          '0'=>'1110010','1'=>'1100110','2'=>'1101100','3'=>'1000010','4'=>'1011100',
+                          '5'=>'1001110','6'=>'1010000','7'=>'1000100','8'=>'1001000','9'=>'1110100')
+                  );
+  
+          $parities=array(
+                  '0'=>array('A','A','A','A','A','A'),
+                  '1'=>array('A','A','B','A','B','B'),
+                  '2'=>array('A','A','B','B','A','B'),
+                  '3'=>array('A','A','B','B','B','A'),
+                  '4'=>array('A','B','A','A','B','B'),
+                  '5'=>array('A','B','B','A','A','B'),
+                  '6'=>array('A','B','B','B','A','A'),
+                  '7'=>array('A','B','A','B','A','B'),
+                  '8'=>array('A','B','A','B','B','A'),
+                  '9'=>array('A','B','B','A','B','A')
+                  );
+          $code='101';
+          $p=$parities[$barcode{0}];
+          for($i=1;$i<=6;$i++)
+                  $code.=$codes[$p[$i-1]][$barcode{$i}];
+          $code.='01010';
+          for($i=7;$i<=12;$i++)
+                  $code.=$codes['C'][$barcode{$i}];
+          $code.='101';
+          //Draw bars
+          for($i=0;$i<strlen($code);$i++)
+          {
+                  if($code{$i}=='1')
+                          $this->Rect($x+$i*$w,$y,$w,$h,'F');
+          }
+          
+          //Print text uder barcode
 
-function PFC_Foodshed($data,$offset=0){
+          $this->SetFont('Arial','',9);
+          //$this->SetXY($genLeft,$descTop + 24);
+          //$this->Cell(49.609375,4,substr($barcode,-$len),0,0,'C');
+	  if (isset($_GET['narrow']))
+		  $this->Text($x,$y+$h+11/$this->k,substr($barcode,-$len));
+	  else
+		  $this->Text($x+6,$y+$h+11/$this->k,substr($barcode,-$len));
 
-$pdf=new PFC_Foodshed_PDF('P','mm','Letter'); //start new instance of PDF
-$pdf->Open(); //open new PDF Document
-$pdf->setTagDate(date("m/d/Y"));
+    }
+  
+  }
+  
+  /**------------------------------------------------------------
+   *       End barcode creation class 
+   *-------------------------------------------------------------*/
+  
+  
+  /**
+   * begin to create PDF file using fpdf functions
+   */
 
-$width = 52; // tag width in mm
-$height = 31; // tag height in mm
-// $left = 5; // left margin
-// $top = 15; // top margin
+  function PFC_Standard32up($data,$offset=0){
+	$hspace = 0.79375;
+	$h = 29.36875;
+	$top = 12 + 2.5;
+	$left = 4.85 + 1.25;
+	$space = 1.190625 * 2;
 
-$hspace = 0.79375;
-$h = 29.36875;
-$top = 18;
-$left = 4.5;
-$space = 1.190625 * 2;
+  
+	$pdf=new PFC_Standard32up_PDF('P', 'mm', 'Letter');
+	$pdf->SetMargins($left ,$top + $hspace);
+	$pdf->SetAutoPageBreak('off',0);
+	$pdf->AddPage('P');
+	$pdf->SetFont('Arial','',10);
+  
+	/**
+	* set up location variable starts
+	*/
 
-$pdf->SetTopMargin($top);  //Set top margin of the page
-$pdf->SetLeftMargin($left);  //Set left margin of the page
-$pdf->SetRightMargin($left);  //Set the right margin of the page
-$pdf->SetAutoPageBreak(False); // manage page breaks yourself
-$pdf->AddPage();  //Add page #1
+	$barLeft = $left + 1;
+	$descTop = $top + $hspace;
+	$barTop = $descTop + 16;
+	$priceTop = $descTop + 4;
+	$labelCount = 0;
+	$brandTop = $descTop + 4;
+	$sizeTop = $descTop + 8;
+	$genLeft = $left;
+	$skuTop = $descTop + 12;
+	$vendLeft = $left + 13;
+	$down = 30.95625;
+	$LeftShift = 51.990625;
+	$w = 49.609375;
+	$priceLeft = ($w / 2) + ($space);
+    $propLeft = 42;
+    $propTop = 34;
+	// $priceLeft = 24.85
+	/**
+	   * increment through items in query
+	   */
+	   
+	foreach($data as $row){
+	/**
+	* check to see if we have made 32 labels.
+	* if we have start a new page....
+	*/
 
-/**
- * set up location variable starts
- */
- 
-$barLeft = $left + 1;
-$descTop = $top + $hspace;
-$barTop = $descTop + 4;
-$priceTop = $descTop + 14;
-$labelCount = 0;
-$genLeft = $left;
-$skuTop = $descTop + 8;
-$down = 30.95625;
-$LeftShift = 53;
-$w = 49.609375;
-$priceLeft = $left;
-$propLeft = 42;
-$propTop = 34;
-/**
- * increment through items in query
- */
+		if($labelCount == 32){
+			$pdf->AddPage('P');
+			$descTop = $top + $hspace;
+			$barLeft = $left + 1;
+			$barTop = $descTop + 16;
+			$priceTop = $descTop + 4;
+			$priceLeft = ($w / 2) + ($space);
+			$labelCount = 0;
+			$brandTop = $descTop + 4;
+			$sizeTop = $descTop + 8;
+			$genLeft = $left;
+			$skuTop = $descTop + 12;
+		    $vendLeft = $left + 13;
+		    $propLeft = 42;
+		    $propTop = 34;
+		}
+	  
+		/** 
+		* check to see if we have reached the right most label
+		* if we have reset all left hands back to initial values
+		*/
+		if($barLeft > 175){
+			$barLeft = $left + 1;
+			$barTop = $barTop + $down;
+			$priceLeft = ($w / 2) + ($space);
+			$priceTop = $priceTop + $down;
+			$descTop = $descTop + $down;
+			$brandTop = $brandTop + $down;
+			$sizeTop = $sizeTop + $down;
+			$genLeft = $left;
+			$vendLeft = $left + 13;
+			$skuTop = $skuTop + $down;
+			$propLeft = 42;
+		    $propTop = $propTop + $down;
+		}
+	  
+		/**
+		* instantiate variables for printing on barcode from 
+		* $testQ query result set
+		*/
+		if ($row['scale'] == 0) {$price = $row['normal_price'];}
+		elseif ($row['scale'] == 1) {$price = $row['normal_price'] . "/lb";}
+		$desc = strtoupper(substr($row['description'],0,27));
+		$brand = ucwords(strtolower(substr($row['brand'],0,13)));
+		$pak = $row['units'];
+		$size = ($pak==0) ? "" : $row['units'] . "-" . $row['size'];
+		$sku = $row['sku'];
+		$upc = substr($row['upc'],1,12);
+		$local = ($row['local']==1)?"l":($row['local']==2)?"n":"m";
+		/** 
+		* determine check digit using barcode.php function
+		*/
+		$check = $pdf->GetCheckDigit($upc);
+		/**
+		* get tag creation date (today)
+		*/
+		$tagdate = date('m/d/y');
+		$vendor = substr($row['vendor'],0,7);
 
-$num = 1; // count tags 
-$x = $left;
-$y = $top;
-//cycle through result array of query
-foreach($data as $row){
-
-   // extract & format data
-   $price = $row['normal_price'];
-   $desc = strtoupper(substr($row['description'],0,27));
-   $brand = ucwords(strtolower(substr($row['brand'],0,13)));
-   $pak = $row['units'];
-   $size = $row['units'] . "-" . $row['size'];
-   $sku = $row['sku'];
-   $ppu = $row['pricePerUnit'];
-   $upc = ltrim($row['upc'],0);
-   $check = $pdf->GetCheckDigit($upc);
-   $vendor = substr($row['vendor'],0,7);
-   $local = ($row['local']==1)?"l":($row['local']==2)?"n":"m";
-   
-   //Start laying out a label 
-   $newUPC = $upc . $check; //add check digit to upc
-   if (strlen($upc) <= 11)
-	$pdf->UPC_A($x+7,$y+4,$upc,7);  //generate barcode and place on label
-   else
-	$pdf->EAN13($x+7,$y+4,$upc,7);  //generate barcode and place on label
-
-   /**
-    * begin creating tag
-    */
-   $pdf->SetXY($genLeft, $descTop);
-   $pdf->Cell($w,4,substr($desc,0,20),0,0,'L');
-   $pdf->SetFont('Arial','B',20);
-   $pdf->SetXY($priceLeft,$priceTop);
-   $pdf->Cell($w/2,8,$price,0,0,'L');
-   $pdf->SetFont('ZapfDingbats',0,8);
-   $pdf->SetXY($propLeft,$propTop);
-   $pdf->Cell(5,5,$local,0,0,'C');
-
-   // move right by tag width
-   $x += $width;
-
-   // if it's the end of a page, add a new
-   // one and reset x/y top left margins
-   // otherwise if it's the end of a line,
-   // reset x and move y down by tag height
-   if ($num % 32 == 0){
-	$pdf->AddPage();
-	$x = $left;
-	$y = $top;
-   }
-   else if ($num % 4 == 0){
-	$x = $left;
-	$y += $height;
-   }
-
-   $num++;
-}
-
-	$pdf->Output();  //Output PDF file to screen.
-}
-
+	    /**
+	     * begin creating tag
+	     */
+	    $pdf->SetXY($genLeft, $descTop);
+	    $pdf->Cell($w,4,substr($desc,0,20),0,0,'L');
+	    $pdf->SetFont('Arial','B',20);
+	    $pdf->SetXY($priceLeft,$priceTop);
+	    $pdf->Cell($w/2,8,$price,0,0,'L');
+	    $pdf->SetFont('ZapfDingbats',0,8);
+	    $pdf->SetXY($propLeft,$propTop);
+	    $pdf->Cell(5,5,$local,0,0,'C');
+	    /** 
+	     * add check digit to pid from testQ
+	     */
+	      $newUPC = $upc . $check;
+	      $pdf->UPC_A($barLeft,$barTop,$upc,7);
+	    /**
+	     * increment label parameters for next label
+	     */
+	      $barLeft =$barLeft + $LeftShift;
+	      $priceLeft = $priceLeft + $LeftShift;
+	      $genLeft = $genLeft + $LeftShift;
+	      $vendLeft = $vendLeft + $LeftShift;
+	  	$propLeft = $propLeft + $LeftShift;
+	      $labelCount++;
+	}
+	  
+	/**
+	* write to PDF
+	*/
+	$pdf->Output();
+  }
 ?>
