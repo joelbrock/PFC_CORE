@@ -132,20 +132,47 @@ class PFC_Foodshed_PDF extends FPDF
 
 function PFC_Foodshed($data,$offset=0){
 
-$pdf=new WFC_New_PDF('P','mm','Letter'); //start new instance of PDF
+$pdf=new PFC_Foodshed_PDF('P','mm','Letter'); //start new instance of PDF
 $pdf->Open(); //open new PDF Document
 $pdf->setTagDate(date("m/d/Y"));
 
 $width = 52; // tag width in mm
 $height = 31; // tag height in mm
-$left = 5; // left margin
-$top = 15; // top margin
+// $left = 5; // left margin
+// $top = 15; // top margin
+
+$hspace = 0.79375;
+$h = 29.36875;
+$top = 18;
+$left = 4.5;
+$space = 1.190625 * 2;
 
 $pdf->SetTopMargin($top);  //Set top margin of the page
 $pdf->SetLeftMargin($left);  //Set left margin of the page
 $pdf->SetRightMargin($left);  //Set the right margin of the page
 $pdf->SetAutoPageBreak(False); // manage page breaks yourself
 $pdf->AddPage();  //Add page #1
+
+/**
+ * set up location variable starts
+ */
+ 
+$barLeft = $left + 1;
+$descTop = $top + $hspace;
+$barTop = $descTop + 4;
+$priceTop = $descTop + 14;
+$labelCount = 0;
+$genLeft = $left;
+$skuTop = $descTop + 8;
+$down = 30.95625;
+$LeftShift = 53;
+$w = 49.609375;
+$priceLeft = $left;
+$propLeft = 42;
+$propTop = 34;
+/**
+ * increment through items in query
+ */
 
 $num = 1; // count tags 
 $x = $left;
@@ -164,6 +191,7 @@ foreach($data as $row){
    $upc = ltrim($row['upc'],0);
    $check = $pdf->GetCheckDigit($upc);
    $vendor = substr($row['vendor'],0,7);
+   $local = ($row['local']==1)?"l":($row['local']==2)?"n":"m";
    
    //Start laying out a label 
    $newUPC = $upc . $check; //add check digit to upc
@@ -172,24 +200,17 @@ foreach($data as $row){
    else
 	$pdf->EAN13($x+7,$y+4,$upc,7);  //generate barcode and place on label
 
-   // writing data
-   // basically just set cursor position
-   // then write text w/ Cell
-   $pdf->SetFont('Arial','',8);  //Set the font 
-   $pdf->SetXY($x,$y+12);
-   $pdf->Cell($width,4,$desc,0,1,'L');
-   $pdf->SetX($x);
-   $pdf->Cell($width,4,$brand,0,1,'L');
-   $pdf->SetX($x);
-   $pdf->Cell($width,4,$size,0,1,'L');
-   $pdf->SetX($x);
-   $pdf->Cell($width,4,$sku.' '.$vendor,0,0,'L');
-   $pdf->SetX($x);
-   $pdf->Cell($width-5,4,$ppu,0,0,'R');
-
-   $pdf->SetFont('Arial','B',24);  //change font size
-   $pdf->SetXY($x,$y+16);
-   $pdf->Cell($width-5,8,$price,0,0,'R');
+   /**
+    * begin creating tag
+    */
+   $pdf->SetXY($genLeft, $descTop);
+   $pdf->Cell($w,4,substr($desc,0,20),0,0,'L');
+   $pdf->SetFont('Arial','B',20);
+   $pdf->SetXY($priceLeft,$priceTop);
+   $pdf->Cell($w/2,8,$price,0,0,'L');
+   $pdf->SetFont('ZapfDingbats',0,8);
+   $pdf->SetXY($propLeft,$propTop);
+   $pdf->Cell(5,5,$local,0,0,'C');
 
    // move right by tag width
    $x += $width;
