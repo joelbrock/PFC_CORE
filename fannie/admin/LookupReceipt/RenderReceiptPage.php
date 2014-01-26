@@ -10,7 +10,7 @@ class RenderReceiptPage extends FanniePage {
 		return '
 			body {
 				font-family: Arial,sans-serif;
-				font-size: 0.9em;
+				font-size: 0.8em;
 			}';
 	}
 
@@ -47,7 +47,7 @@ class RenderReceiptPage extends FanniePage {
 		}
 
 		if ($date1 !== '' && $transNum !== ''){
-			$ret .= $this->receiptHeader($date1,$transNum);
+			$ret = $this->receiptHeader($date1,$transNum);
 			$ret .= $this->ccInfo($date1, $transNum);
 		}
 		return $ret;
