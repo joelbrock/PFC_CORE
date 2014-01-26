@@ -40,7 +40,7 @@ require($FANNIE_ROOT.'src/fpdf/fpdf.php');
   *******************************************************************************/
   define('FPDF_FONTPATH','font/');
   
-  class PFC_Standard32up_PDF extends FPDF
+  class PFC_Foodshed_PDF extends FPDF
   {
     function EAN13($x,$y,$barcode,$h=16,$w=.35)
     {
@@ -158,7 +158,7 @@ require($FANNIE_ROOT.'src/fpdf/fpdf.php');
    * begin to create PDF file using fpdf functions
    */
 
-  function PFC_Standard32up($data,$offset=0){
+  function PFC_Foodshed($data,$offset=0){
 	$hspace = 0.79375;
 	$h = 29.36875;
 	$top = 12 + 2.5;
@@ -166,7 +166,7 @@ require($FANNIE_ROOT.'src/fpdf/fpdf.php');
 	$space = 1.190625 * 2;
 
   
-	$pdf=new PFC_Standard32up_PDF('P', 'mm', 'Letter');
+	$pdf=new PFC_Foodshed_PDF('P', 'mm', 'Letter');
 	$pdf->SetMargins($left ,$top + $hspace);
 	$pdf->SetAutoPageBreak('off',0);
 	$pdf->AddPage('P');
