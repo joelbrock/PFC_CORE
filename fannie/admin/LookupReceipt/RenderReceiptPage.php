@@ -172,9 +172,17 @@ class RenderReceiptPage extends FanniePage {
 				$receiptHeader .= ("<tr><td align=center colspan=4>" . "" . "</td></tr>\n");
 				break;
 
-			default:
-				$receiptHeader .= ("<tr><td align=center colspan=4>" . "FANNIE_COOP_ID >{$FANNIE_COOP_ID}<" . "</td></tr>\n");
+			// default:				
+// 				$receiptHeader .= ("<tr><td align=center colspan=4>" . "FANNIE_COOP_ID >{$FANNIE_COOP_ID}<" . "</td></tr>\n");
 
+			}
+		} else {
+			$q = $dbc->prepare_statement("SELECT type,text FROM customReceipt 
+				WHERE type LIKE '%header%' ORDER BY seq");
+			$r = $dbc->exec_statement($q);
+			while($w = $dbc->fetch_row($r)){
+				$msg = (substr($w['text'],-3)=='bmp')?'':$w['text'];
+				$receiptHeader .= ("<tr><td align=center colspan=4>$msg</td></tr>\n");
 			}
 		}
 
