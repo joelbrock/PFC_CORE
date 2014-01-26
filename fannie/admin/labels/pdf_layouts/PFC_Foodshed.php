@@ -159,11 +159,11 @@ require($FANNIE_ROOT.'src/fpdf/fpdf.php');
    */
 
   function PFC_Foodshed($data,$offset=0){
-	$hspace = 0.79375;
-	$h = 29.36875;
-	$top = 12 + 2.5;
-	$left = 4.85 + 1.25;
-	$space = 1.190625 * 2;
+	  $hspace = 0.79375;
+	  $h = 29.36875;
+	  $top = 18;
+	  $left = 4.5;
+	  $space = 1.190625 * 2;
 
   
 	$pdf=new PFC_Foodshed_PDF('P', 'mm', 'Letter');
@@ -176,20 +176,17 @@ require($FANNIE_ROOT.'src/fpdf/fpdf.php');
 	* set up location variable starts
 	*/
 
-	$barLeft = $left + 1;
-	$descTop = $top + $hspace;
-	$barTop = $descTop + 16;
-	$priceTop = $descTop + 4;
-	$labelCount = 0;
-	$brandTop = $descTop + 4;
-	$sizeTop = $descTop + 8;
-	$genLeft = $left;
-	$skuTop = $descTop + 12;
-	$vendLeft = $left + 13;
-	$down = 30.95625;
-	$LeftShift = 51.990625;
-	$w = 49.609375;
-	$priceLeft = ($w / 2) + ($space);
+    $barLeft = $left + 1;
+    $descTop = $top + $hspace;
+    $barTop = $descTop + 4;
+    $priceTop = $descTop + 14;
+    $labelCount = 0;
+    $genLeft = $left;
+    $skuTop = $descTop + 8;
+    $down = 30.95625;
+    $LeftShift = 53;
+    $w = 49.609375;
+    $priceLeft = $left;
     $propLeft = 42;
     $propTop = 34;
 	// $priceLeft = 24.85
@@ -204,20 +201,17 @@ require($FANNIE_ROOT.'src/fpdf/fpdf.php');
 	*/
 
 		if($labelCount == 32){
-			$pdf->AddPage('P');
-			$descTop = $top + $hspace;
-			$barLeft = $left + 1;
-			$barTop = $descTop + 16;
-			$priceTop = $descTop + 4;
-			$priceLeft = ($w / 2) + ($space);
-			$labelCount = 0;
-			$brandTop = $descTop + 4;
-			$sizeTop = $descTop + 8;
-			$genLeft = $left;
-			$skuTop = $descTop + 12;
-		    $vendLeft = $left + 13;
-		    $propLeft = 42;
-		    $propTop = 34;
+          $pdf->AddPage('P');
+	      $descTop = $top + $hspace;
+	      $barLeft = $left + 1;
+	      $barTop = $descTop + 4;
+	      $priceTop = $descTop + 14;
+		  $priceLeft = $left;
+	      $labelCount = 0;
+	      $genLeft = $left;
+	      $skuTop = $descTop + 8;
+		  $propLeft = 42;
+		  $propTop = 34;
 		}
 	  
 		/** 
@@ -225,16 +219,12 @@ require($FANNIE_ROOT.'src/fpdf/fpdf.php');
 		* if we have reset all left hands back to initial values
 		*/
 		if($barLeft > 175){
-			$barLeft = $left + 1;
-			$barTop = $barTop + $down;
-			$priceLeft = ($w / 2) + ($space);
-			$priceTop = $priceTop + $down;
-			$descTop = $descTop + $down;
-			$brandTop = $brandTop + $down;
-			$sizeTop = $sizeTop + $down;
-			$genLeft = $left;
-			$vendLeft = $left + 13;
-			$skuTop = $skuTop + $down;
+	        $barLeft = $left + 1;
+	        $barTop = $barTop + $down;
+			$priceLeft = $left;
+	        $priceTop = $priceTop + $down;
+	        $descTop = $descTop + $down;
+	        $genLeft = $left;
 			$propLeft = 42;
 		    $propTop = $propTop + $down;
 		}
