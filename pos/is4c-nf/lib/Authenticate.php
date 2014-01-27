@@ -82,7 +82,7 @@ static public function checkPassword($password,$activity=1)
 			);
 			Database::setglobalvalues($globals);
 
-			$CORE_LOCAL->set("SecuritySR", $row_q['frontendsecurity']);
+			// $CORE_LOCAL->set("SecuritySR", $row_q['frontendsecurity']);
 
 			CoreState::cashierLogin($transno, $row_q['age']);
 
