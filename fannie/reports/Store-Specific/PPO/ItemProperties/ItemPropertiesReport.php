@@ -1,63 +1,83 @@
 <?php
 
-include('../../../../config.php');
+include($FANNIE_ROOT.'config.php');
 include($FANNIE_ROOT.'classlib2.0/FannieAPI.php');
 
 $page_title = 'Fannie - Reporting';
 $header = 'Item Properties Report';
-class ItemPropertiesReport extends FannieReportPage
-{
-    protected $title = "Fannie : Item Properties";
-    protected $header = "Item Properties Report";
-    protected $report_headers = array('Date','UPC','Description','Qty','$');
-    protected $required_fields = array('year1', 'year2');
+include($FANNIE_ROOT.'src/header.html');
 
+    // protected $title = "Fannie : Item Properties";
+    // protected $header = "Item Properties Report";
+    // protected $report_headers = array('Date','UPC','Description','Qty','$');
+    // protected $required_fields = array('year1', 'year2');
 
-	function fetch_report_data() {
-
-
-//if ($_REQUEST['submit']) {
+if ($_REQUEST['submit']) {
 //	require_once '../../../../config.conf';
 //	include '../src/functions.php';
 //	include 'reportFunctions.php';
-//	include '../../../../src/header.php';
+	$dbc = FannieDB::get($FANNIE_OP_DB);
+	include($FANNIE_ROOT.'src/header.html');
 	echo '<script type="text/javascript" language="Javascript" src="http://code.highcharts.com/highcharts.js"></script>';
 	foreach ($_POST AS $key => $value) {
 		$$key = $value;
 	}
 	// Check year in query, match to a dlog table
-	$year1 = idate('Y',strtotime($date1));
-	$year2 = idate('Y',strtotime($date2));
-
-	// echo "<head>\n";
-	// include '../src/head.php';
-	// echo "\n</head>\n\n";
-	if ($year1 != $year2) {
-		echo "<div id='alert'><h4>Reporting Error</h4><p>Fannie cannot run reports across multiple years.<br>Please retry your query.</p></div>\n";
-	} else { $table = 'dlog_' . $year1; }
-	$gross = gross($table,$date1,$date2);
-		
+	$d1 = $_REQUEST['date1'];
+	$d2 = $_REQUEST['date2'];
+	// $dept = $_REQUEST['dept'];
+	if ( isset($_REQUEST['other_dates']) ) {
+		switch ($_REQUEST['other_dates']) {
+			case 'today':
+				$d1 = date("Y-m-d");
+				$d2 = $d1;
+				break;
+			case 'yesterday':
+				$d1 = date("Y-m-d", strtotime('yesterday'));
+				$d2 = $d1;
+				break;
+			case 'this_week':
+				$d1 = date("Y-m-d", strtotime('last monday'));
+				$d2 = date("Y-m-d");
+				break;
+			case 'last_week':
+				$d1 = date("Y-m-d", strtotime('last monday - 7 days'));
+				$d2 = date("Y-m-d", strtotime('last sunday'));
+				break;
+			case 'this_month':
+				$d1 = date("Y-m-d", strtotime('first day of this month'));
+				$d2 = date("Y-m-d");
+				break;
+			case 'last_month':
+				$d1 = date("Y-m-d", strtotime('first day of last month'));
+				$d2 = date("Y-m-d", strtotime('last day of last month'));
+				break;
+		}
+	}
+	$dlog = DTransactionsModel::selectDtrans($d1,$d2);
+	// $gross = gross($table,$date1,$date2);
+	$gross = 0; // FOR TESTING
 	// echo "<div id='progressbar'></div>";	
 	
 	echo "<div id='chart' style='width:100%; height: 300px;'>"; 
 	echo "</div>";	
-	echo "\n<p>GROSS TOTAL FOR $date1 thru $date2:  <b>" . money_format('%n', $gross) . "</b></p>\n";
+	echo "\n<p>GROSS TOTAL FOR $d1 thru $d2:  <b>" . money_format('%n', $gross) . "</b></p>\n";
 	
 	$propR = mysql_query("SELECT * FROM item_properties");
 	
-	$itemsQ = "SELECT COUNT(DISTINCT p.upc) as itmct,
-			i.name as Item_Property, 
+	$itemsQ = $dbc->prepare_statement("SELECT COUNT(DISTINCT p.upc) as itmct,
+			i.description as Item_Property, 
 			COUNT(p.props) as Count,
 			ROUND(SUM(d.total),2) as Sales,
 			ROUND((SUM(d.total)/$gross)*100,2) as pct_of_gross,
-			i.bit as id
-		FROM " . PRODUCTS_TBL . " p, item_properties i, " . DB_LOGNAME . ".$table d
-		WHERE DATE(d.datetime) BETWEEN '".$date1."' AND '".$date2."' 
+			i.bit_number as id
+		FROM products p, prodFlags i, $dlog d
+		WHERE DATE(d.datetime) BETWEEN ? AND ?
 		AND p.props >= 1
 		AND p.upc = d.upc
-		AND BINARY(p.props) & i.bit 
-		GROUP BY Item_Property";
-	$itemsR = mysql_query($itemsQ);
+		AND BINARY(p.props) & i.bit_number 
+		GROUP BY Item_Property");
+	$itemsR = $dbc->exec_statement($itemsQ, $d1, $d2);
 	if (!$itemsR) { die("Query: $itemsQ<br />Error:".mysql_error()); }
 	
 	echo "<table id='output' cellpadding=6 cellspacing=0 border=0 class=\"sortable-onload-3 rowstyle-alt colstyle-alt\">\n
@@ -71,7 +91,7 @@ class ItemPropertiesReport extends FannieReportPage
 	  </thead>\n
 	  <tbody>\n";
 	$local = 0;
-	while ($row = mysql_fetch_assoc($itemsR)) {
+	while ($row = $dbc->fetch_row($itemsR)) {
 		echo "<td align=left><b>" . $row['Item_Property'] . "</b> (" . $row['itmct'] . ")</td>\n
 			<td align=right>" . $row['Count'] . "</td>\n
 			<td align=right>" . money_format('%n',$row['Sales']) . "</td>\n
@@ -81,15 +101,9 @@ class ItemPropertiesReport extends FannieReportPage
 			$local += $row['pct_of_gross'];
 	}
 	echo "</tbody></table>\n";
-	
-	// debug_p($_REQUEST, "all the data coming in");
-	
-	//include '../src/footer.php'; 	
-	}
-//} else {
 
-//	include '../../../../src/header.php';
-	function form_content() {
+	}
+} else {	
 		echo "<form action=\"itemProperties.php\" method=\"POST\" target=\"_blank\">\n
 		<table>\n<tr>
 		<td>Date Start:</td>\n
@@ -103,11 +117,9 @@ class ItemPropertiesReport extends FannieReportPage
 		<input type=submit name=submit value=submit></input></form>";
 
 
-
-		include $FANNIE_ROOT.'src/footer.php'; 
-	}
-//}
 }
+
+include $FANNIE_ROOT.'src/footer.html'; 
 
 ?>
 <script>
