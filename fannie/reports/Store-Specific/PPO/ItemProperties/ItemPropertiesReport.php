@@ -1,6 +1,6 @@
 <?php
-
-include($FANNIE_ROOT.'config.php');
+global $CORE_LOCAL;
+include('../../../../config.php');
 include($FANNIE_ROOT.'classlib2.0/FannieAPI.php');
 
 $page_title = 'Fannie - Reporting';
@@ -17,7 +17,6 @@ if ($_REQUEST['submit']) {
 //	include '../src/functions.php';
 //	include 'reportFunctions.php';
 	$dbc = FannieDB::get($FANNIE_OP_DB);
-	include($FANNIE_ROOT.'src/header.html');
 	echo '<script type="text/javascript" language="Javascript" src="http://code.highcharts.com/highcharts.js"></script>';
 	foreach ($_POST AS $key => $value) {
 		$$key = $value;
@@ -63,21 +62,21 @@ if ($_REQUEST['submit']) {
 	echo "</div>";	
 	echo "\n<p>GROSS TOTAL FOR $d1 thru $d2:  <b>" . money_format('%n', $gross) . "</b></p>\n";
 	
-	$propR = mysql_query("SELECT * FROM item_properties");
+	//$propR = $dbc->exec_satatement("SELECT * FROM numflag");
 	
 	$itemsQ = $dbc->prepare_statement("SELECT COUNT(DISTINCT p.upc) as itmct,
 			i.description as Item_Property, 
-			COUNT(p.props) as Count,
+			COUNT(p.numflag) as Count,
 			ROUND(SUM(d.total),2) as Sales,
 			ROUND((SUM(d.total)/$gross)*100,2) as pct_of_gross,
 			i.bit_number as id
 		FROM products p, prodFlags i, $dlog d
 		WHERE DATE(d.datetime) BETWEEN ? AND ?
-		AND p.props >= 1
+		AND p.numflag >= 1
 		AND p.upc = d.upc
-		AND BINARY(p.props) & i.bit_number 
+		AND BINARY(p.numflag) & i.bit_number 
 		GROUP BY Item_Property");
-	$itemsR = $dbc->exec_statement($itemsQ, $d1, $d2);
+	$itemsR = $dbc->exec_statement($itemsQ, array($d1, $d2));
 	if (!$itemsR) { die("Query: $itemsQ<br />Error:".mysql_error()); }
 	
 	echo "<table id='output' cellpadding=6 cellspacing=0 border=0 class=\"sortable-onload-3 rowstyle-alt colstyle-alt\">\n
@@ -102,9 +101,8 @@ if ($_REQUEST['submit']) {
 	}
 	echo "</tbody></table>\n";
 
-	}
 } else {	
-		echo "<form action=\"itemProperties.php\" method=\"POST\" target=\"_blank\">\n
+		echo "<form action=\"ItemPropertiesReport.php\" method=\"POST\" target=\"_blank\">\n
 		<table>\n<tr>
 		<td>Date Start:</td>\n
 		<td><div class=\"date\"><p><input type=\"text\" name=\"date1\" class=\"datepicker\" />&nbsp;&nbsp;*</p></div></td>\n
