@@ -7,24 +7,15 @@ $page_title = 'Fannie - Reporting';
 $header = 'Item Properties Report';
 include($FANNIE_ROOT.'src/header.html');
 
-    // protected $title = "Fannie : Item Properties";
-    // protected $header = "Item Properties Report";
-    // protected $report_headers = array('Date','UPC','Description','Qty','$');
-    // protected $required_fields = array('year1', 'year2');
-
-if ($_REQUEST['submit']) {
-//	require_once '../../../../config.conf';
-//	include '../src/functions.php';
-//	include 'reportFunctions.php';
+if ($_REQUEST['submit'] == "submit") {
 	$dbc = FannieDB::get($FANNIE_OP_DB);
 	echo '<script type="text/javascript" language="Javascript" src="http://code.highcharts.com/highcharts.js"></script>';
 	foreach ($_POST AS $key => $value) {
 		$$key = $value;
 	}
-	// Check year in query, match to a dlog table
 	$d1 = $_REQUEST['date1'];
 	$d2 = $_REQUEST['date2'];
-	// $dept = $_REQUEST['dept'];
+	// $dept = $_REQUEST['dept'];  // TODO:  add a dept/superdept filter to search form
 	if ( isset($_REQUEST['other_dates']) ) {
 		switch ($_REQUEST['other_dates']) {
 			case 'today':
@@ -54,15 +45,19 @@ if ($_REQUEST['submit']) {
 		}
 	}
 	$dlog = DTransactionsModel::selectDtrans($d1,$d2);
-	// $gross = gross($table,$date1,$date2);
-	$gross = 0; // FOR TESTING
+	$grossQ = $dbc->prepare_statement("SELECT ROUND(sum(total),2) as GROSS_sales
+		FROM $dlog WHERE DATE(datetime) BETWEEN ? AND ?
+		AND department BETWEEN 1 AND 20
+		AND trans_type <> 'T'");
+	$grossR = $dbc->exec_statement($grossQ,array($d1, $d2));
+	$grossW = $dbc->fetch_row($grossR);
+	$gross = ($grossW[0]) ? $grossW[0] : 0;
+
 	// echo "<div id='progressbar'></div>";	
 	
 	echo "<div id='chart' style='width:100%; height: 300px;'>"; 
 	echo "</div>";	
-	echo "\n<p>GROSS TOTAL FOR $d1 thru $d2:  <b>" . money_format('%n', $gross) . "</b></p>\n";
-	
-	//$propR = $dbc->exec_satatement("SELECT * FROM numflag");
+	echo "\n<h3 style='text-align:center;'>GROSS TOTAL FOR $d1 thru $d2:  <b>" . money_format('%n', $gross) . "</b></h3>\n";
 	
 	$itemsQ = $dbc->prepare_statement("SELECT COUNT(DISTINCT p.upc) as itmct,
 			i.description as Item_Property, 
@@ -79,11 +74,11 @@ if ($_REQUEST['submit']) {
 	$itemsR = $dbc->exec_statement($itemsQ, array($d1, $d2));
 	if (!$itemsR) { die("Query: $itemsQ<br />Error:".mysql_error()); }
 	
-	echo "<table id='output' cellpadding=6 cellspacing=0 border=0 class=\"sortable-onload-3 rowstyle-alt colstyle-alt\">\n
+	echo "<table align=center id='output' cellpadding=6 cellspacing=0 border=0 class=\"sortable-onload-3 rowstyle-alt colstyle-alt\">\n
 	  <thead>\n
 	    <tr>\n
 	      <th class=\"sortable-text\">Item Property (ct.)</th>\n
-	      <th class=\"sortable-numeric favour-reverse\">Count.</th>\n
+	      <th class=\"sortable-numeric favour-reverse\">Rings</th>\n
 	      <th class=\"sortable-currency favour-reverse\">Sales</th>\n
 	      <th class=\"sortable-numeric favour-reverse\">% of gross</th>\n
 	    </tr>\n
@@ -102,18 +97,22 @@ if ($_REQUEST['submit']) {
 	echo "</tbody></table>\n";
 
 } else {	
-		echo "<form action=\"ItemPropertiesReport.php\" method=\"POST\" target=\"_blank\">\n
-		<table>\n<tr>
-		<td>Date Start:</td>\n
-		<td><div class=\"date\"><p><input type=\"text\" name=\"date1\" class=\"datepicker\" />&nbsp;&nbsp;*</p></div></td>\n
-		</tr>\n<tr>
-		<td>Date End:</td>\n
-		<td><div class=\"date\"><p><input type=\"text\" name=\"date2\" class=\"datepicker\" />&nbsp;&nbsp;*</p></div></td>\n
-		</tr>\n<tr></tr>
-		
+		?>
+		<script type="text/javascript" src="<?php echo $FANNIE_URL; ?>src/CalendarControl.js"></script>
+		<form action="ItemPropertiesReport.php" method="POST">
+		<table><tr>
+		<td>Date Start:</td>
+		<td><div class="date"><p><input type="text" name="date1" onfocus="this.value='';showCalendarControl(this);" />&nbsp;&nbsp;*</p></div></td>
+		</tr><tr>
+		<td>Date End:</td>
+		<td><div class="date"><p><input type="text" name="date2" onfocus="this.value='';showCalendarControl(this);" />&nbsp;&nbsp;*</p></div></td>
+		</tr>
+		<tr></tr>
 		</table>
-		<input type=submit name=submit value=submit></input></form>";
-
+		<input type=submit name=submit value=submit></input>
+		<div style="float:right;"><?php echo FormLib::date_range_picker(); ?></div>
+		</form>
+		<?php
 
 }
 
@@ -150,17 +149,18 @@ $(function () {
             type: 'pie',
             name: 'Local Products',
             data: [
-                ['Local',		<?=$local; ?>],
+                ['Local',	<?=$local; ?>],
                 ['Non-Local',	<?=100-$local; ?>]
             ]
         }]
     });
 });
 </script>
-<script>
+<!--<script>
 	$(function() {
 		$( ".datepicker" ).datepicker({ 
 			dateFormat: 'yy-mm-dd' 
 		});
 	});
 </script>
+-->
