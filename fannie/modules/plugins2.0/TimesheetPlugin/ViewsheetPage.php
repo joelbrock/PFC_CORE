@@ -102,7 +102,7 @@ class ViewsheetPage extends FanniePage {
 	}
 
 	function error_contents(){
-		include ('./includes/header.html');
+		// include ('./includes/header.html');
 		echo "<br /><br /><h1>The following errors occurred:</h1><ul>";
 
 		foreach ($this->errors as $msg) {
@@ -113,7 +113,7 @@ class ViewsheetPage extends FanniePage {
 
 	function show_sheet($emp_no, $periodID){
 		global $ts_db, $FANNIE_PLUGIN_SETTINGS, $FANNIE_OP_DB;
-		include ('./includes/header.html');
+		// include ('./includes/header.html');
 
 		$ft = 40;
 
@@ -123,7 +123,7 @@ class ViewsheetPage extends FanniePage {
 			e.FirstName,
 			date_format(p.periodStart, '%M %D, %Y'),
 			date_format(p.periodEnd, '%M %D, %Y'),
-			t.date
+			t.tdate
 			    FROM {$FANNIE_PLUGIN_SETTINGS['TimesheetDatabase']}.timesheet AS t
 			INNER JOIN {$FANNIE_OP_DB}.employees AS e
 			ON (t.emp_no = e.emp_no)
@@ -246,13 +246,13 @@ class ViewsheetPage extends FanniePage {
 		if ($ot2 > 0) echo "<td>OT: $ot2</td>";
 		echo "</tr>";
 		// echo "<td><b>Coming Soon-</b>Amount House Charged: $" . number_format($houseCharge, 2) . "</td></tr>";
-		echo "</tr><tr><td>Paid Time Off (PTO): </td><td>";
-		echo "<input type='text' name='vacation' size='5' maxlength='5' value='" . number_format($vacation, 2) . "' />" . $font . "
-			<input type='hidden' name='vacationID' value='$vacationID' />
-			<input type='hidden' name='period' value='$periodID' />
-			<input type='hidden' name='emp' value='$emp_no' /></td>
-			<!-- <td><button name='addvaca' type='submit'>Use PTO Hours</button></td> -->
-			</tr>";
+		// echo "</tr><tr><td>Paid Time Off (PTO): </td><td>";
+		// echo "<input type='text' name='vacation' size='5' maxlength='5' value='" . number_format($vacation, 2) . "' />" . $font . "
+		// 	<input type='hidden' name='vacationID' value='$vacationID' />
+		// 	<input type='hidden' name='period' value='$periodID' />
+		// 	<input type='hidden' name='emp' value='$emp_no' /></td>
+		// 	<!-- <td><button name='addvaca' type='submit'>Use PTO Hours</button></td> -->
+		// 	</tr>";
 		$otime = ($ot1 + $ot2) * 1.5;
 		$week1 = ($weekone > $ft) ? $ft : $weekone;
 		$week2 = ($weektwo > $ft) ? $ft : $weektwo;

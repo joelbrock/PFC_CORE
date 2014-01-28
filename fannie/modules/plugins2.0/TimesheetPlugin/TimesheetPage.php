@@ -16,7 +16,8 @@ class TimesheetPage extends FanniePage {
 	  It handles form input.
 	*/
 	public function preprocess(){
-		global $ts_db;
+		global $ts_db, $FANNIE_OP_DB, $FANNIE_URL, $FANNIE_PLUGIN_SETTINGS;
+		
 		$this->header = 'Timeclock - Entry';
 		$this->title = 'Fannie - Administration Module';
 		$this->display_func = '';
@@ -51,7 +52,7 @@ class TimesheetPage extends FanniePage {
 			$result = $ts_db->exec_statement($query,array($periodID));
 			list($datediff) = $ts_db->fetch_row($result);
 		
-			$empnoChkQ = $ts_db->prepare_statement("SELECT * FROM employees WHERE emp_no = ?");
+			$empnoChkQ = $ts_db->prepare_statement("SELECT * FROM ".$FANNIE_OP_DB.".employees WHERE emp_no = ?");
 			$empnoChkR = $ts_db->exec_statement($empnoChkQ,array($_POST['emp_no']));
 	
 			if ($_POST['emp_no'] && ($_POST['emp_no'] != '')) {
@@ -90,7 +91,7 @@ class TimesheetPage extends FanniePage {
 					} 
 				}
 			}
-
+			
 			if (empty($this->errors)) { // All good.
 		
 				setcookie("timesheet", $emp_no, time()+60*3);
@@ -107,14 +108,17 @@ class TimesheetPage extends FanniePage {
 					// 	exit;
 					// }	
 					$successcount = 0;
+					$query = $ts_db->prepare_statement("SELECT pay_rate FROM ".$FANNIE_OP_DB.".employees where emp_no=?");
+					$result = $ts_db->exec_statement($query,$emp_no);
+					$wage = $ts_db->fetch_row($result);				
 					$insP = $ts_db->prepare_statement("INSERT INTO ".
 						$FANNIE_PLUGIN_SETTINGS['TimesheetDatabase'].
-						".timesheet (emp_no, hours, area, tdate, periodID)
-						VALUES (?,?,?,?,?)");
+						".timesheet (emp_no, hours, area, tdate, periodID, wage, comment)
+						VALUES (?,?,?,?,?,?,?)");
 					for ($i = 1; $i <= $entrycount; $i++) {
 						$result = $ts_db->exec_statement($insP,array(
 							$emp_no, $_POST['hours'.$i],
-							$_POST['area'.$i],$date,$periodID
+							$_POST['area'.$i],$date,$periodID,$wage[0],$_POST['comment'.$i]
 						));
 						if ($ts_db->affected_rows() == 1) {$successcount++;}
 					}
@@ -159,19 +163,26 @@ class TimesheetPage extends FanniePage {
 		}
 		}
 		}
+		function switchType(type,n){
+		  if(type=='32'){
+		    $('.other'+n).slideDown("slow");
+		  } else {
+		    $('.other'+n).hide("slow");
+		  }
+		};
 		<?php
 		return ob_get_clean();
 	}
 
 	function success_content(){
-		include ('./includes/header.html');
+		// include ('./includes/header.html');
 		echo "<div id='alert'><h1>Success!</h1>";
 		echo '<p>If you like, you may <a href="'.$_SERVER['PHP_SELF'].'">add more hours</a> 
 			or you can <a href="./ViewsheetPage.php">edit hours</a>.</p></div>';
 	}
 
 	function error_content(){
-		include ('./includes/header.html');
+		// include ('./includes/header.html');
 		echo '<div id="alert"><p><font color="red">The following error(s) occurred:</font></p>';
 		foreach ($this->errors AS $message) {
 			echo "<p> - $message</p>";
@@ -182,6 +193,7 @@ class TimesheetPage extends FanniePage {
 	function body_content(){
 		global $ts_db, $FANNIE_OP_DB, $FANNIE_URL, $FANNIE_PLUGIN_SETTINGS;
 		include ('./includes/header.html');
+		echo '<script src="../../../src/CalendarControl.js" language="javascript"></script>';
 		/**
 		  if preprocess() changed the setting for display_func 
 		  based on form input, show that content instead of
@@ -199,10 +211,8 @@ class TimesheetPage extends FanniePage {
 			echo '<td><p>Name: <select name="emp_no">
 				<option value="error">Select staff member</option>' . "\n";
 		
-			$query = $ts_db->prepare_statement("SELECT FirstName, 
-				CASE WHEN LastName='' OR LastName IS NULL THEN ''
-				ELSE ".$ts_db->concat('LEFT(LastName,1)',"'.'")." END,
-				emp_no FROM ".$FANNIE_OP_DB.".employees where EmpActive=1 ORDER BY FirstName ASC");
+			$query = $ts_db->prepare_statement("SELECT FirstName, LastName, emp_no 
+				FROM ".$FANNIE_OP_DB.".employees where EmpActive=1 ORDER BY FirstName ASC");
 			$result = $ts_db->exec_statement($query);
 			while ($row = $ts_db->fetch_array($result)) {
 				echo "<option value=\"$row[2]\">$row[0] $row[1]</option>\n";
@@ -211,33 +221,34 @@ class TimesheetPage extends FanniePage {
 		} else {
 			echo "<td><p>Employee Number*: <input type='text' name='emp_no' value='".$_COOKIE['timesheet']."' size=4 autocomplete='off' /></p></td>";
 		}
-		echo '<td><p>Date*: <input type="text" name="date" value="'. date('Y-m-d') .'" size=10 class="datepicker" alt="Tip: try cmd + arrow keys" />
-			<!--<font size=1>Tip: try cmd + arrow keys</font>--></p></td></tr>';
+		echo '<td><p>Date*: <input type="text" name="date" value="'. date('Y-m-d') .'" size=10 onfocus="showCalendarControl(this);" />
+			</td></tr>';
 		echo "<tr><td><br /></td></tr>";
 		echo "<tr><td align='right'><b>Total Hours</b></td><td align='center'><strong>Labor Category</strong></td>";
 		$queryP = $ts_db->prepare_statement("SELECT IF(NiceName='', ShiftName, NiceName), ShiftID 
 			FROM " . $FANNIE_PLUGIN_SETTINGS['TimesheetDatabase'] . ".shifts 
 			WHERE visible=true ORDER BY ShiftOrder ASC");
-		for ($i = 1; $i <= $max; $i++) {
+		for ($i = 1; $i <= 10; $i++) {
 			echo "<tr><td align='right'><input type='text' name='hours" . $i . "' size=6></input></td>";
 
 			$result = $ts_db->exec_statement($queryP);
-			echo '<td><select name="area' . $i . '" id="area' . $i . '"><option>Please select an area of work.</option>';
+			echo '<td><select name="area' . $i . '" id="area' . $i . '" onchange="switchType(this.value,'.$i.')"><option>Please select an area of work.</option>';
 			while ($row = $ts_db->fetch_row($result)) {
 				echo "<option id =\"$i$row[1]\" value=\"$row[1]\">$row[0]</option>";
 			}
 			echo '</select></td></tr>' . "\n";
+			echo "<tr class='other".$i."' style='display:none'><td colspan=2 align='right' valign='top'>Explain*:<textarea name='comment".$i."' cols=38 rows=2></textarea></td></tr>";			
 		}
 		echo '<tr><td><br /></td></tr>
 			<tr><td colspan=2 align="center">
 			<button name="submit" type="submit">Submit</button>
 			<input type="hidden" name="submitted" value="TRUE" /></td></tr>
 			</table></form>';	
-		if ($this->current_user){
-			echo "<div class='log_btn'><a href='" . $FANNIE_URL . "auth/ui/loginform.php?logout=1'>logout</a></div>";
-		} else {
-			echo "<div class='log_btn'><a href='" . $_SERVER["PHP_SELF"] . "?login=1'>login</a></div>";  //   class='loginbox'
-		}
+		// if ($this->current_user){
+		// 	echo "<div class='log_btn'><a href='" . $FANNIE_URL . "auth/ui/loginform.php?logout=1'>logout</a></div>";
+		// } else {
+		// 	echo "<div class='log_btn'><a href='" . $_SERVER["PHP_SELF"] . "?login=1'>login</a></div>";  //   class='loginbox'
+		// }
 	}
 }
 

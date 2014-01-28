@@ -22,25 +22,25 @@
 *********************************************************************************/
 
 include('../config.php');
-include_once($FANNIE_ROOT.'classlib2.0/FannieAPI.php');
-include_once($FANNIE_ROOT.'src/JsonLib.php');
+include($FANNIE_ROOT.'classlib2.0/FannieAPI.php');
+include($FANNIE_ROOT.'src/JsonLib.php');
 
 class ViewPurchaseOrders extends FannieRESTfulPage {
 
 	protected $header = 'Purchase Orders';
 	protected $title = 'Purchase Orders';
 
-	protected $must_authenticate = false;
+	protected $must_authenticate = True;
 
-	private $show_all = true;
+	private $show_all = False;
 
 	function preprocess(){
 		$this->__routes[] = 'get<pending>';
 		$this->__routes[] = 'get<placed>';
 		$this->__routes[] = 'post<id><setPlaced>';
 		$this->__routes[] = 'get<id><export>';
-		if (FormLib::get_form_value('all') === '0')
-			$this->show_all = false;
+		if (FormLib::get_form_value('all') === '1')
+			$this->show_all = True;
 		return parent::preprocess();
 	}
 
@@ -96,7 +96,7 @@ class ViewPurchaseOrders extends FannieRESTfulPage {
 			WHERE placed=? ';
 		if (!$this->show_all) $query .= 'AND userID=? ';
 		$query .= 'GROUP BY p.orderID, p.vendorID, v.vendorName
-			ORDER BY MIN(creationDate) DESC';
+			ORDER BY MIN(creationDate)';
 		$args = array($placed);
 		if (!$this->show_all) $args[] = FannieAuth::getUID($this->current_user);
 
@@ -132,7 +132,7 @@ class ViewPurchaseOrders extends FannieRESTfulPage {
 		$order->load();
 
 		$vendor = new VendorsModel($dbc);
-		$vendor->vendorID($order->vendorID());
+		$vendor->vendorID($order->orderID());
 		$vendor->load();
 
 		$ret = '<b>Vendor</b>: '.$vendor->vendorName();
@@ -159,35 +159,6 @@ class ViewPurchaseOrders extends FannieRESTfulPage {
 		}
 		$ret .= '</select>';
 		$ret .= '<input type="submit" value="Export" onclick="doExport('.$this->id.');return false;" />';
-
-        $departments = $dbc->tableDefinition('departments');
-        $codingQ = 'SELECT d.salesCode, SUM(o.receivedTotalCost) as rtc
-                    FROM PurchaseOrderItems AS o
-                    LEFT JOIN products AS p ON o.internalUPC=p.upc ';
-        if (isset($departments['salesCode'])) {
-            $codingQ .= ' LEFT JOIN departments AS d ON p.department=d.dept_no ';
-        } else if ($dbc->tableExists('deptSalesCodes')) {
-            $codingQ .= ' LEFT JOIN deptSalesCodes AS d ON p.department=d.dept_ID ';
-        }
-        $codingQ .= 'WHERE o.orderID=?
-                    GROUP BY d.salesCode';
-        $codingP = $dbc->prepare($codingQ);
-        $codingR = $dbc->execute($codingP, array($this->id));
-        $ret .= '<br />';
-        $ret .= '<table cellspacing="0" cellpadding="4" border="1"><tr><th colspan="2">Coding(s)</th>';
-        $ret .= '<td><b>PO#</b>: '.$order->vendorOrderID().'</td>';
-        $ret .= '<td><b>Invoice#</b>: '.$order->vendorInvoiceID().'</td>';
-        $ret .= '</tr>';
-        while($codingW = $dbc->fetch_row($codingR)) {
-            if ($codingW['rtc'] == 0 && empty($codingW['salesCode'])) {
-                continue;
-            } else if (empty($codingW['salesCode'])) {
-                $codingW['salesCode'] = 'n/a';
-            }
-            $ret .= sprintf('<tr><td>%s</td><td>%.2f</td><td colspan="2"></td></tr>',
-                        $codingW['salesCode'], $codingW['rtc']); 
-        }
-        $ret .= '</table><br />';
 
 		$model = new PurchaseOrderItemsModel($dbc);
 		$model->orderID($this->id);
@@ -222,7 +193,10 @@ class ViewPurchaseOrders extends FannieRESTfulPage {
 
 	function get_view(){
 		$ret = '<b>Status</b><select id="orderStatus" onchange="fetchOrders();">';
-        $ret .= '<option value="pending">Pending</option><option selected value="placed">Placed</option>';
+		if (!isset($this->pending))
+			$ret .= '<option selected value="pending">Pending</option><option value="placed">Placed</option>';
+		else
+			$ret .= '<option value="pending">Pending</option><option selected value="placed">Placed</option>';
 		$ret .= '</select>';
 
 		$ret .= '&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
@@ -245,6 +219,6 @@ class ViewPurchaseOrders extends FannieRESTfulPage {
 	}
 }
 
-FannieDispatch::conditionalExec();
+FannieDispatch::go();
 
 ?>

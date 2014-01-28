@@ -17,10 +17,36 @@ class TsStaffMemReport extends FanniePage {
 		}
 		return True;
 	}
-
+	
+	function javascript_content(){
+		ob_start();
+		?>
+		$(document).ready(function() {
+			$(".stripeme tr").mouseover(function() {
+				$(this).addClass("over");
+			});
+			$(".stripeme tr").mouseout(function() {
+				$(this).removeClass("over");
+			});
+			$(".stripeme tr:even").addClass("alt");
+		});
+		$(document).ready(function(){
+		    $('a[title]').qtip();
+		});
+		<?php
+		return ob_get_clean();
+	}
+	
 	function css_content(){
 		ob_start();
 		?>
+		tr.alt td { background:whiteSmoke; }
+		tr.over td { background:#CCCCFF; }
+		.split { color:white; font-weight:bold; background:#999999; height:10px; }
+		table th, table th a {
+			font-size: 8px;
+			text-transform: uppercase;
+		}
 		table th {
 			font-size: 8px;
 			text-transform: uppercase;
@@ -32,10 +58,12 @@ class TsStaffMemReport extends FanniePage {
 	function body_content(){
 		global $ts_db, $FANNIE_OP_DB, $FANNIE_PLUGIN_SETTINGS, $FANNIE_URL;
 		include ('./includes/header.html');
+		echo '<script type="text/javascript" language="Javascript" src="includes/jquery.qtip.min.js"></script>
+			<link type="text/css" rel="stylesheet" href="includes/jquery.qtip.min.css" />';
 		//	FULL TIME: Number of hours per week
 		$ft = 40;
 		echo '<form action="'.$_SERVER['PHP_SELF'].'" method=GET>';
-		$stored = ($_COOKIE['timesheet']) ? $_COOKIE['timesheet'] : '';
+		$stored = ($_COOKIE['timesheet']) ? $_COOKIE['timesheet'] : (FormLib::get_form_value('emp_no',0) != '') ?  FormLib::get_form_value('emp_no',0) : '';
 		if ($_SESSION['logged_in'] == True) {
 			echo '<p>Name: <select name="emp_no">
 			<option value="error">Select staff member</option>' . "\n";
@@ -88,17 +116,16 @@ class TsStaffMemReport extends FanniePage {
 		if (FormLib::get_form_value('run','') == 'run') {
 	
 			$emp_no = FormLib::get_form_value('emp_no',0);
-			$namesq = $ts_db->prepare_statement("SELECT e.emp_no, e.FirstName, e.LastName, e.pay_rate, JobTitle 
-				FROM employees e WHERE e.emp_no = ? AND e.empActive = 1");
-			$namesr = $ts_db->exec_statement($namesq,array($_GET['emp_no']));
-	
-			if (!$namesr) {
+			$namesq = $ts_db->prepare_statement("SELECT * FROM ".$FANNIE_OP_DB.".employees WHERE emp_no=? AND EmpActive=1");
+			$namesr = $ts_db->exec_statement($namesq,array($emp_no));
+// echo $ts_db->num_rows($namesr);
+			if ($ts_db->num_rows($namesr) == 0) {
 				echo "<div id='alert'><h1>Error!</h1><p>Incorrect, invalid, or inactive employee number entered.</p>
 					<p><a href='".$_SERVER['PHP_SELF']."'>Please try again</a></p></div>";
 			} 
 			else {
 				$name = $ts_db->fetch_row($namesr);
-		
+
 				setcookie("timesheet", $emp_no, time()+60*3);
 		
 				$periodID = FormLib::get_form_value('period',0);
@@ -114,9 +141,10 @@ class TsStaffMemReport extends FanniePage {
 
 				$query2 = $ts_db->prepare_statement("SELECT date_format(periodEnd, '%M %D, %Y') as periodEnd, 
 					periodID as pid 
-					FROM {$FANNIE_PLUGIN_SETTINGS['TimesheetDatabase']}.payperiods WHERE periodID = ?");
+					FROM {$FANNIE_PLUGIN_SETTINGS['TimesheetDatabase']}.payperiods 
+					WHERE periodID = ?");
 				$result2 = $ts_db->exec_statement($query2,array($end));
-				$periodEnd = $ts_db->_fetch_row($result2);
+				$periodEnd = $ts_db->fetch_row($result2);
 				$p = array();
 				for ($i = $periodStart[1]; $i < $periodEnd[1]; $i++) {
 					$p[] = $i;
@@ -134,11 +162,8 @@ class TsStaffMemReport extends FanniePage {
 
 				// $sql_incl = "";
 				// $sql_excl = "AND emp_no <> 9999";
-				$staffQ = $ts_db->prepare_statement("SELECT * FROM employees WHERE emp_no = ?");
-				$staffR = $ts_db->exec_statement($staffQ,array($emp_no));
-				$staff = $ts_db->fetch_row($staffR);
 
-				echo "<h2>$emp_no &mdash; ".$staff['FirstName']." ". $staff['LastName']."</h2>";
+				echo "<h2>$emp_no &mdash; ".$name['FirstName']." ". $name['LastName']."</h2>";
 
 				// BEGIN TITLE
 				// 
@@ -174,7 +199,11 @@ class TsStaffMemReport extends FanniePage {
 				$areasr = $ts_db->exec_statement($areasq);
 
 				$shiftInfo = array();
-				echo "<table border='1' cellpadding='5' cellspacing=0><thead>\n<tr><th>Week</th><th>Name</th><th>Wage</th>";
+				echo "<table border='1' cellpadding='5' cellspacing=0 class='stripeme'><thead>\n<tr>
+					<th>Week</th>
+					<th>date</th>
+					<th>Name</th>
+					<th>Wage</th>";
 				while ($areas = $ts_db->fetch_array($areasr)) {
 					echo "<div id='vth'><th>" . substr($areas[0],0,6) . "</th></div>";	// -- TODO vertical align th, static col width
 					$shiftInfo[$areas['ShiftID']] = $areas['ShiftName'];
@@ -183,26 +212,25 @@ class TsStaffMemReport extends FanniePage {
 		
 				$weekQ = $ts_db->prepare_statement("SELECT emp_no, area, tdate, periodID, 
 					hours, WEEK(tdate) as week_number 
-					FROM ".$FANNIE_PLUGIN_SETTINGS['TimesheetDatabase'].".timesheet 
+					FROM {$FANNIE_PLUGIN_SETTINGS['TimesheetDatabase']}.timesheet 
 					WHERE emp_no = ?
-					AND tdate >= ? AND tdate <= ?
+					AND DATE(tdate) >= ? AND DATE(tdate) <= ?
 					GROUP BY WEEK(tdate)");
 				$weekR = $ts_db->exec_statement($weekQ,array($emp_no,$periodStart[2],$periodEnd[2]));
-
-				$totalP = $ts_db->prepare_statement("SELECT SUM(hours) FROM ".
-					$FANNIE_PLUGIN_SETTINGS['TimesheetDatabase'].".timesheet 
-					WHERE periodID >= ? AND periodID <= ? AND emp_no = ?");
+				$totalP = $ts_db->prepare_statement("SELECT SUM(hours) 
+					FROM {$FANNIE_PLUGIN_SETTINGS['TimesheetDatabase']}.timesheet 
+					WHERE DATE(tdate) = ? AND emp_no = ?");
 				$depttotP = $ts_db->prepare_statement("SELECT SUM(t.hours) 
 					FROM {$FANNIE_PLUGIN_SETTINGS['TimesheetDatabase']}.timesheet t 
-					WHERE WEEK(t.tdate) = ? AND t.emp_no = ? AND t.area = ?");
+					WHERE DATE(t.tdate) = ? AND t.emp_no = ? AND t.area = ?");
 				$nonPTOtotalP = $ts_db->prepare_statement("SELECT SUM(hours) FROM ".
 					$FANNIE_PLUGIN_SETTINGS['TimesheetDatabase'].".timesheet 
 					WHERE periodID >= ? AND periodID <= ? AND area <> 31 
 					AND emp_no = ?");
 				$weekoneP = $ts_db->prepare_statement("SELECT ROUND(SUM(hours), 2) 
 					FROM {$FANNIE_PLUGIN_SETTINGS['TimesheetDatabase']}.timesheet AS t
-					INNER JOIN {$FANNIE_PLUGIN_SETTINGS['TimesheetDatabase']}.payperiods 
-					AS p ON (p.periodID = t.periodID)
+					INNER JOIN {$FANNIE_PLUGIN_SETTINGS['TimesheetDatabase']}.payperiods AS p 
+					ON (p.periodID = t.periodID)
 					WHERE t.emp_no = ?
 					AND t.periodID = ?
 					AND t.area <> 31
@@ -217,14 +245,23 @@ class TsStaffMemReport extends FanniePage {
 					AND t.area <> 31
 					AND t.tdate >= DATE(date_add(p.periodStart, INTERVAL 7 day)) 
 					AND t.tdate <= DATE(p.periodEnd)");
-				while ($row = $ts_db->fetch_row($weekR)) {
-					$week_no = $row['week_number'];
-					$emp_no = $row['emp_no'];
+				
+				$workQ = $ts_db->prepare_statement("SELECT WEEK(tdate),DATE(tdate), emp_no
+					FROM {$FANNIE_PLUGIN_SETTINGS['TimesheetDatabase']}.timesheet 
+					WHERE DATE(tdate) >= ? AND DATE(tdate) <= ? AND emp_no = ?
+					GROUP BY DATE(tdate)");
+				$workR = $ts_db->exec_statement($workQ, array($periodStart[2],$periodEnd[2],$emp_no));
+
+				while ($row = $ts_db->fetch_row($workR)) {
+					$week_no = $row[0];
+					$tdate = $row[1];
+					$emp_no = $row[2];
 			
-					$totalr = $ts_db->exec_statement($totalP,array($periodID,$end,$emp_no));
+					$totalr = $ts_db->exec_statement($totalP,array($tdate,$emp_no));
 					$total = $ts_db->fetch_row($totalr);
 					$color = ($total[0] > (80 * $periodct)) ? "FF0000" : "000000";
 					echo "<tr><td>$week_no</td>";
+					echo "<td>".date("m/d",strtotime($tdate))."</td>";
 					echo "<td>".ucwords($name['FirstName'])." - " . ucwords(substr($name['FirstName'],0,1)) . ucwords(substr($name['LastName'],0,1)) . "</td><td align='right'>$" . $name['pay_rate'] . "</td>";
 					$total0 = (!$total[0]) ? 0 : number_format($total[0],2);
 
@@ -233,10 +270,25 @@ class TsStaffMemReport extends FanniePage {
 					//	LABOR DEPARTMENT TOTALS
 					foreach($shiftInfo as $area => $shiftName){	
 						// echo $depttotq;
-						$depttotr = $ts_db->exec_statement($depttotq,array($week_no,$emp_no,$area));
+						$depttotr = $ts_db->exec_statement($depttotP,array($tdate,$emp_no,$area));
 						$depttot = $ts_db->fetch_row($depttotr);
 						$depttotal = (!$depttot[0]) ? 0 : number_format($depttot[0],2);
-						echo "<td align='right'>" . $depttotal . "</td>";
+						// echo "<td align='right'>" . $depttotal . "</td>";
+				
+						if ($area == 32) {
+							$commQ = $ts_db->prepare_statement("SELECT comment FROM {$FANNIE_PLUGIN_SETTINGS['TimesheetDatabase']}.timesheet 
+								WHERE tdate = ? AND emp_no = ? AND area = 32 AND comment <> ''");
+							$commR = $ts_db->exec_statement($commQ, array(
+								$tdate, $emp_no
+							));
+							$comment = $ts_db->fetch_row($commR);
+							$otag = ($comment[0]!="")? "<a title='".$comment[0]."'>" : "";
+							$ctag = "</a>";
+						}
+						echo "<td align='right'>".$otag.$depttotal.$ctag."</td>";
+
+						$otag = "";
+						$ctag = "";
 					}
 					//	END LABOR DEPT. TOTALS
 
@@ -248,55 +300,77 @@ class TsStaffMemReport extends FanniePage {
 					//	PTO CALC
 					$nonPTOtotalr = $ts_db->exec_statement($nonPTOtotalP,array($periodID,$end,$emp_no));
 					$nonPTOtotal = $ts_db->fetch_row($nonPTOtotalr);
-					$ptoAcc = ($row['JobTitle'] == 'STAFF') ? $nonPTOtotal[0] * 0.075 : 0;
+					$ptoAcc = ($name['JobTitle'] == 'STAFF') ? $total[0] * 0.075 : 0;
 					echo "<td align='right'>" . number_format($ptoAcc,2) . "</td>";
-
 
 					echo "<td align='right'><font style='color: $color; font-weight:bold;'>" . $total0 . "</font></td>";
 
 					// 
 					//	OVERTIME
-					// 
-					$otime1 = array();
-					$otime2 = array();
-					foreach ($p as $v) {
+					$otQ = $ts_db->prepare_statement("SELECT ROUND(SUM(hours), 2) 
+						FROM {$FANNIE_PLUGIN_SETTINGS['TimesheetDatabase']}.timesheet AS t
+				        INNER JOIN {$FANNIE_PLUGIN_SETTINGS['TimesheetDatabase']}.payperiods AS p 
+						ON (p.periodID = t.periodID)
+				        WHERE t.emp_no = ? AND t.periodID = ? AND t.area <> 31
+						AND t.tdate BETWEEN STR_TO_DATE(CONCAT(YEAR(?),WEEK(?),' Sunday'), '%X%V %W') 
+						AND ?");
+					// echo $otQ;
+					$otR = $ts_db->exec_statement($otQ, array($emp_no,$periodID,$tdate,$tdate,$tdate));
 
+					list($ot_day) = $ts_db->fetch_row($otR);
+					if (is_null($ot_day)) $ot_day = 0;
+					$otime = (($ot_day - $ft) > 0) ? $ot_day - $ft - $ot_yest : 0;
 
-						$weekoneR = $ts_db->exec_statement($weekoneP,array($emp_no,$v));
-						$weektwoR = $ts_db->exec_statement($weektwoP,array($emp_no,$v));
-
-						list($weekone) = $ts_db->fetch_row($weekoneR);
-						if (is_null($weekone)) $weekone = 0;
-						list($weektwo) = $ts_db->fetch_row($weektwoR);
-						if (is_null($weektwo)) $weektwo = 0;
-
-						if ($weekone > $ft) $otime1[] = $weekone - $ft;
-						if ($weektwo > $ft) $otime2[] = $weektwo - $ft;
-						// $otime = $otime + $otime1 + $otime2;
-
-					}
-					$ot1 = array_sum($otime1);
-					$ot2 = array_sum($otime2);
-					$otime = $ot1 + $ot2;
-					// print_r($p);
 					echo "<td align='right'>" . $otime . "</td>";
-					$otime = 0;
-					$otime1 = array();
-					$otime2 = array();
+
+					$ot_yest = $otime; 
+					$OT[] = $otime;
 					// 	END OVERTIME
 					echo "</tr>";
 
 				}
+				
+				echo "<tr><td colspan=4><b>TOTALS</b></td>";
+
+				$TOT = array();
+				$areasq = $ts_db->prepare_statement("SELECT ShiftName, ShiftID 
+					FROM ".$FANNIE_PLUGIN_SETTINGS['TimesheetDatabase'].".shifts 
+					WHERE visible = 1 ORDER BY ShiftOrder");
+				$areasr = $ts_db->exec_statement($areasq);
+				while ($areas = $ts_db->fetch_array($areasr)) {
+					$query = $ts_db->prepare_statement("SELECT ROUND(SUM(hours),2) 
+						FROM {$FANNIE_PLUGIN_SETTINGS['TimesheetDatabase']}.timesheet t 
+						WHERE emp_no = ? AND tdate BETWEEN ? AND ? AND area = ?");
+					$totsr = $ts_db->exec_statement($query, array(
+						$emp_no, $periodStart[2], $periodEnd[2], $areas[1]
+					));
+					$tots = $ts_db->fetch_row($totsr);
+					$tot = (!$tots[0] || $tots[0] == '') ? '0' : $tots[0];
+					echo "<td align='right'><b>$tot</b></td>";
+					$TOT[] = $tot;
+				}
+
+				$PTOTOT = number_format(array_sum($PTOnew),2);
+				echo "<td><b>$PTOTOT</b></td>";
+
+				$TOTAL = number_format(array_sum($TOT),2);
+				echo "<td><b>$TOTAL</b></td>";
+
+				$OTTOT = number_format(array_sum($OT),2);
+				echo "<td><b>$OTTOT</b></td>";
+
+				echo"</tr>";
+				
 				echo "</tbody></table>\n";
 			}
 	
 		} // end 'run' button 
 
-		if ($this->current_user){
-			echo "<div class='log_btn'><a href='" . $FANNIE_URL . "auth/ui/loginform.php?logout=1'>logout</a></div>";
-		} else {
-			echo "<div class='log_btn'><a href='" . $_SERVER["PHP_SELF"] . "?login=1'>login</a></div>";  //   class='loginbox'
-		}
+		// if ($this->current_user){
+		// 	echo "<div class='log_btn'><a href='" . $FANNIE_URL . "auth/ui/loginform.php?logout=1'>logout</a></div>";
+		// } else {
+		// 	echo "<div class='log_btn'><a href='" . $_SERVER["PHP_SELF"] . "?login=1'>login</a></div>";  //   class='loginbox'
+		// }
 	}
 
 

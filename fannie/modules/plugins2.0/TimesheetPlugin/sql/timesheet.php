@@ -31,6 +31,8 @@ $PLUGIN_CREATE['timesheet'] = "
 	ID INT NOT NULL AUTO_INCREMENT,	
 	VACATION DECIMAL(10,2),
 	tstamp TIMESTAMP, 
+	wage DOUBLE,
+	comment VARCHAR(512),
 	PRIMARY KEY (ID)
 	)
 ";
