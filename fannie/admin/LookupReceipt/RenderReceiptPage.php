@@ -168,17 +168,16 @@ class RenderReceiptPage extends FanniePage {
 				break;
 
 			 default:				
-	                        $q = $dba->prepare_statement("SELECT type,text FROM customReceipt
-	                                WHERE type LIKE '%eader%' ORDER BY seq");
-	                        $r = $dba->exec_statement($q);
-	                        while($w = $dba->fetch_row($r)){
-       		                        //$msg = (substr($w['text'],-3)=='bmp')?'':$w['text'];
+			 	$q = $dba->prepare_statement("SELECT type,text FROM customReceipt
+					WHERE type LIKE '%eader%' ORDER BY seq");
+				$r = $dba->exec_statement($q);
+				while($w = $dba->fetch_row($r)){
 					if (substr($w['text'],-4)=='.bmp') 
 						$msg = "<img src='../../../pos/is4c-nf/graphics/" . $w['text'] . "' width=300 />";
 					else 
-                	                	$msg = $w['text'];	
+						$msg = $w['text'];	
 					$receiptHeader .= ("<tr><td align=center colspan=4>$msg</td></tr>\n");
-                       		 }
+				}
 			}
 		} 
 		$ret = "<table border = $border bgcolor=$bgcolor>\n";
