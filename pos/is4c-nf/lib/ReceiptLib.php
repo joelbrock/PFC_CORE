@@ -1168,7 +1168,7 @@ static public function printReceipt($arg1,$second=False,$email=False) {
 					"\n";
 			}
 			$receipt['any'] .= self::localTTL();
-			//$receipt['any'] .= self::graphedLocalTTL();
+			// $receipt['any'] .= self::graphedLocalTTL();
 			$receipt['any'] .= "\n";
 	
 			if (trim($CORE_LOCAL->get("memberID")) != $CORE_LOCAL->get("defaultNonMem")) {
@@ -1491,12 +1491,12 @@ static public function memReceiptMessages($card_no){
 static public function equityNotification($trans_num=''){
 	global $CORE_LOCAL;
 	$db = Database::tDataConnect();
-	$checkQ = "select sum(total) from localtemptrans where department=991 
+	$checkQ = "select sum(total) from localtemptrans where department=36
 		group by department having sum(total) <> 0";
 	if (!empty($trans_num)){
 		list($e,$r,$t) = explode('-',$trans_num);
 		$checkQ = sprintf("SELECT sum(total) FROM localtranstoday WHERE emp_no=%d AND
-				register_no=%d AND trans_no=%d AND department=991
+				register_no=%d AND trans_no=%d AND department=36
                  AND datetime >= " . $db->curdate() . "
 				group by department having sum(total) <> 0",$e,$r,$t);
 	}
@@ -1506,7 +1506,7 @@ static public function equityNotification($trans_num=''){
 	$row = $db->fetch_row($checkR);
 
 	$slip = self::centerString("................................................")."\n\n";
-	$slip .= self::biggerFont("Class B Equity Purchase")."\n\n";
+	$slip .= self::biggerFont("Equity Purchase")."\n\n";
 	$slip .= self::biggerFont(sprintf('Amount: $%.2f',$row[0]))."\n";
 	$slip .= "\n";
 	$slip .= "Proof of purchase for owner equity\n";

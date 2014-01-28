@@ -48,6 +48,9 @@ class ItemReceiptFormat extends DefaultReceiptFormat
 			// member special line
 			$description = sprintf(' > you saved $%.2f Member Special <',$row['total']*-1);
 			return $description;
+		} else if ($row['trans_status'] == 'C' && $row['total'] == 0) {
+			// no price for certain coupons
+			return $this->align($row['description'],$comment,"",$this->flags($row));
 		} else {
 			// an item record
 
