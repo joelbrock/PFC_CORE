@@ -22,11 +22,10 @@
 *********************************************************************************/
 
 /**
-  @class WFC_Kicker
-  Opens drawer for cash, credit card over $25,
-  credit card refunds, and stamp sales
+  @class PFC_Kicker
+  Opens drawer for cash, debit + check cashback
 */
-class WFC_Kicker extends Kicker 
+class PFC_Kicker extends Kicker 
 {
 
     public function doKick()
@@ -36,8 +35,7 @@ class WFC_Kicker extends Kicker
 
         $query = "select trans_id from localtemptrans where 
             (trans_subtype = 'CA' and total <> 0) or 
-            (trans_subtype IN ('CC','AX') AND (total < -25 or total > 0) AND description <> 'Debit Card') or 
-            upc='0000000001065'";
+            (trans_subtype IN ('DC', 'CK') AND total > 0)";
 
         $result = $db->query($query);
         $num_rows = $db->num_rows($result);
@@ -55,6 +53,9 @@ class WFC_Kicker extends Kicker
     }
 
     public function kickOnSignIn() {
+        return false;
+    }
+    public function kickOnSignOut() {
         return false;
     }
 }
