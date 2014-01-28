@@ -95,7 +95,7 @@ $CREATE['trans.screendisplay'] = "
 		WHEN (trans_status = 'R')
 			THEN 'RF'
 		WHEN (trans_status = 'C')
-			THEN CASE WHEN (trans_type = 'I') THEN 'IC' ELSE 'MC' END
+			THEN 'CP'
 		WHEN (tax = 1 and foodstamp <> 0)
 			THEN 'TF'
 		WHEN (tax = 1 and foodstamp = 0)
