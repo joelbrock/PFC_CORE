@@ -543,7 +543,7 @@ static public function deptkey($price, $dept,$ret=array())
 				$ret['output'] = DisplayLib::boxMsg(_("coupon amount greater than department total"));
 				$ret['udpmsg'] = 'errorBeep';
 			} else {
-				TransRecord::addItem("", $row["dept_name"]." Coupon", "I", "CP", "C", $dept, 1, -1 * $price, -1 * $price, -1 * $price, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, $intvoided);
+				TransRecord::addItem("", $row["dept_name"]." Coupon", "I", "CP", "C", $dept, 1, -1 * $price, -1 * $price, -1 * $price, 0, 0, $row['dept_fs'], 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, $intvoided);
 				$CORE_LOCAL->set("ttlflag",0);
 				$ret['output'] = DisplayLib::lastpage();
 				$ret['redraw_footer'] = True;
