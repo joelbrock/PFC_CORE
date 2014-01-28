@@ -215,7 +215,7 @@ class HouseCouponEditor extends FanniePage
 		$ret .= sprintf('<table cellspacing=0 cellpadding=4><tr>
 			<th>Coupon ID#</th><td>%s</td><th>UPC</th>
 			<td>%s</td></tr><tr><tr><th>Label</th><td colspan=2>
-			<input type=text name=description value="%s" size=50 /></td></tr>
+			<input type=text name=description value="%s" size=30 /></td></tr>
 			<th>Expires</th><td><input type=text name=expires value="%s" size=12 
 			onclick="showCalendarControl(this);" />
 			</td><th>Limit</th><td><input type=text name=limit size=3
