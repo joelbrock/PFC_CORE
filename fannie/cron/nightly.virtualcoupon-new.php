@@ -112,7 +112,7 @@ $sql->query($upQ);
 $blueLineQ = "UPDATE custdata SET blueLine="
 	.$sql->concat($sql->convert('CardNo','CHAR'),"' '",'LastName',"' Coup('",
 		$sql->convert('memCoupons','CHAR'),"')'",'')
-	. "WHERE memType <> 0";
+	. "WHERE memType NOT IN (0,6)";
 $sql->query($blueLineQ);
 
 // if ($blR == false)
