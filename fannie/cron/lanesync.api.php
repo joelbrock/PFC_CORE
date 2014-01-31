@@ -60,6 +60,7 @@ $regularPushTables = array(
 	'custdata',
 	'memberCards',
 	'custReceiptMessage',
+	'customReceipt',
 	'employees',
 	'departments',
 	'houseCoupons',
