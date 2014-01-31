@@ -21,13 +21,12 @@
 
 *********************************************************************************/
 
-class BottleReturnDept extends SpecialDept 
+class BottleReturnInvert extends SpecialDept 
 {
-
     public function handle($deptID,$amount,$json)
     {
         global $CORE_LOCAL;
-		$amount = $amount * -1;
+		$CORE_LOCAL->set('strEntered', ($amount * -1));
 		$json['main_frame'] = MiscLib::base_url().'gui-modules/pos2.php';
         return $json;
     }
