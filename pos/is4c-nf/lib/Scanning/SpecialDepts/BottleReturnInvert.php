@@ -25,10 +25,13 @@ class BottleReturnInvert extends SpecialDept
 {
     public function handle($deptID,$amount,$json)
     {
-        global $CORE_LOCAL;
-		$CORE_LOCAL->set('strEntered', ($amount * -1));
-		$json['main_frame'] = MiscLib::base_url().'gui-modules/pos2.php';
-        return $json;
+		global $CORE_LOCAL;
+        if ($CORE_LOCAL->get('msgrepeat') == 0)) { // invert has not happened yet
+            $CORE_LOCAL->set('strRemembered', ((100*$amount) * -1) . 'DP' . $deptID);
+            $CORE_LOCAL->set('msgrepeat', 1);
+            $json['main_frame'] = MiscLib::base_url() . 'gui-modules/pos2.php';
+            return $json;
+        }
     }
 }
 
